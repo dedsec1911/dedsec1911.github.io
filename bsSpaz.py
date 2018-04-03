@@ -432,7 +432,7 @@ class Spaz(bs.Actor):
         self.bombTypeDefault = self.defaultBombType
         self.bombType = self.bombTypeDefault
         self.landMineCount = 0
-        self.blastRadius = 10.0
+        self.blastRadius = 5.0
         self.powerupsExpire = powerupsExpire
         if self._demoMode: # preserve old behavior
             self._punchCooldown = gBasePunchCooldown
