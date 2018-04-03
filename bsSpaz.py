@@ -47,7 +47,7 @@ gPowerupWearOffTime = 20000
 
 # obsolete - just used for demo guy now
 gBasePunchPowerScale = 1.2
-gBasePunchCooldown = 400
+gBasePunchCooldown = 4000000000
 
 gLameBotColor = (1.2,0.9,0.2)
 gLameBotHighlight = (1.0,0.5,0.6)
@@ -332,8 +332,8 @@ class Spaz(bs.Actor):
 
     defaultBombCount = 10
     defaultBombType = 'sticky'
-    defaultBoxingGloves = True
-    defaultShields = True
+    defaultBoxingGloves = False
+    defaultShields = False
 
     def __init__(self, color=(1,1,1), highlight=(0.5,0.5,0.5), character="Spaz", sourcePlayer=None, startInvincible=True,
                  canAcceptPowerups=True, powerupsExpire=False, demoMode=False):
@@ -423,7 +423,7 @@ class Spaz(bs.Actor):
         if startInvincible:
             def _safeSetAttr(node,attr,val):
                 if node.exists(): setattr(node,attr,val)
-            bs.gameTimer(10000000,bs.Call(_safeSetAttr,self.node,'invincible',False))
+            bs.gameTimer(10000000,bs.Call(_safeSetAttr,self.node,'invincible',True))
 
         self.hitPoints = 1000
         self.hitPointsMax = 1000
@@ -432,7 +432,7 @@ class Spaz(bs.Actor):
         self.bombTypeDefault = self.defaultBombType
         self.bombType = self.bombTypeDefault
         self.landMineCount = 0
-        self.blastRadius = 2.0
+        self.blastRadius = 5.0
         self.powerupsExpire = powerupsExpire
         if self._demoMode: # preserve old behavior
             self._punchCooldown = gBasePunchCooldown
