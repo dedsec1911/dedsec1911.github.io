@@ -431,7 +431,7 @@ class Spaz(bs.Actor):
         self._maxBombCount = self.defaultBombCount
         self.bombTypeDefault = self.defaultBombType
         self.bombType = self.bombTypeDefault
-        self.landMineCount = 10
+        self.landMineCount = 0
         self.blastRadius = 10.0
         self.powerupsExpire = powerupsExpire
         if self._demoMode: # preserve old behavior
