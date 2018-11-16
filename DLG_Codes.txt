@@ -1,0 +1,165 @@
+*         Search [Float]:  -1.68741035461
+
+* Change codes have numbers that ends in 8 to   35000
+
+Hidden Content
+working on more codes once I test them And know they working fine I’ll update post?
+Floating cars:
+
+Step 1: Search [flaot]  -950
+
+step 2: change all to 100
+
+ 
+
+Aim assist
+
+step 1: search [Ulong] 4715268810947428352
+
+step 2: change first 4 too 4715268810975346688
+
+ 
+
+Fast bullets 
+
+step 1: search [flaot] 0.08
+
+step 2: change all to 0.0
+
+MAGIC BULLETS (NOT SAFE WILL BE BANNED IF OVER USING IT) use on dummy account..
+
+Step 1: Search [Ulong] 4740038608910024704
+
+Step 2: change 1st result to 
+
+5311743973423316992——————————————————-——
+
+INSTANTLY AIM/SCOPE (safe no ban)
+
+step 1: search [ulong] 4575657222461362012
+
+step 2: change all to 4575657000461362012
+
+——————————————————————-
+
+MULTI PLAYER ANTENNA (Standing/Crouching/Laying down/Without guns/With guns) {safe no ban}
+
+Step 1: search [float] 0.82059580088
+
+step 2: Chang all to 999999
+
+ 
+
+LONG HEAD PLAYER ANTENNA(running) (safe no ban)
+
+Step 1: search [float] 7.13142681122
+
+Step 2: change all results to 500000
+
+(Change first 8 and refresh the rest should all change)
+
+ 
+
+PLAYER ANTENNA STANDING STILL (safe no ban)
+
+Step 1: search [float] -1.68741035461
+
+Step 2: change all to 10000
+
+ 
+
+PLAYER ANTENNA CROUCHING (safe no ban)
+
+Step 1: search [float] 18.38612365723
+
+step 2: change all to 999999
+
+ 
+
+PLAYER ARM ANTENNA RUNNING (safe no ban)
+
+step 1: search [float] 18.38613319397
+
+Step 2: change all to 999999
+
+ 
+
+PLAYER RUNNING ANTENNA (safe no ban)
+
+step 1: search [Ulong] 4542112772012578509
+
+steo 2: change all to 4542112772088675328
+
+ 
+
+PLAYER ANTENNA (safe no ban)
+
+step 1: search [float] 22.6400718689
+
+Step 2: change all to 999999
+
+—————————————————————-QUICK WEAPON SWITCH(Still trying to figure out exact codes to change after searching(to make it easier and having to change them all) but it works maybe someone can find them)
+
+step 1: search [float] 0.83333331347
+
+step 2: change to 0.000001
+
+(change most numbers starting with 11) and check if weapon is switching instantly)
+
+when I get time I will test this more to find exact vaule to make it easier for you all
+
+———————————————————
+
+GRASS/TREES HIDDEN (safe no ban)
+
+step 1: search [float] 0.000005
+
+step 2: change 3rd  to 1
+
+GRAS/TREES/ROCKS/OBJECTS HIDDEN (safe no ban)
+
+step 1: search [Ulong] 100000000
+
+step 2: change results ending in 48 too 360 ( hasn’t gotta be 360 you can set these to different numbers {1-400} and find what you like best to use)————————————————————-—
+
+THIS MAY BE VISUAL( needs testing)
+
+REMOVE PLAYER HELMET ARMOUR (safe no ban)
+
+step 1: search [float] 87.27782440186
+
+step 2: change the results to -50 
+
+——————————————————————-
+
+SUPER STRETCH: STANDING UP (if you play solo should be safe as no one can spectate you)
+
+(Once you search for match and waiting on countdown to enter plane..)
+
+Step 1: search [Ulong] 4542111535061997269
+
+(you’ll get 4-5 results)
+
+Step 2: Change all to 4848124999993131008
+
+ 
+
+SUPER STRETCH STANDING UP V2(will release soon. Need to find right vaule for max height it can use otherwise if it’s used with a vaule that’s too high bullets won’t damage other players)—————————————————————-UAZ SPEED CHEAT(buttons are reversed so to go forward use button down and to go back use button up)(should be safe haven’t used this long enough to test for ban)
+
+Step 1: search [float] 0.647058857                    step 2: change all to -99999————————————————————
+
+SUPER STRETCH: CROUCHING(sit scope)(if you play solo should be safe as no one can spectate you)
+
+(be in game)
+
+Step 1: open DLG memor injector and click [ULN]” search “1092081726?”
+
+Step 2: scroll 2 pages????????????? down now where going??? to be clicking the “V” to bring up memor????y/ Check spoiler (at bottom of thread) to s?ee what where lookin for...
+
+Step 3: to make things easier and what to look for I’ve made it into blue text colour inside spolier (the Last bit of blue text is “VW.....” MAKE SURE THIS IS AT BOTTOM when your looking ) so now just click the “V” and look out for what I’ve made Blue text 
+
+Dint forget make sure you’ve scrolled 2 pages down after searching [ULNT] “1092081726” and now check them until you come across what I said, you should find it after after checking first 6-8. (once you find it remember what one you clicked “V” on and press back to get off the memory and proceed to step 4.
+
+Step 4: now you got the right result click on the “M” an change value to “1136081726”
+
+Step 5: you can now go inside buildings or Behind objects and Look over them and be able to shoot people from there, 
