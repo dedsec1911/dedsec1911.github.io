@@ -3,10 +3,10 @@
 include 'config.php';
 
     global $connect;
-	$name  = $_GET['name'];
+	$email  = $_GET['email'];
  
  
- $sql = "SELECT * FROM ssralumni WHERE name = '".$name."' ";
+ $sql = "SELECT * FROM ssralumni WHERE email = '".$email."' ";
  
  $r = mysqli_query($con,$sql);
  
