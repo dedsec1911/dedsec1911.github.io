@@ -5,3 +5,7 @@
 <p><b><font size="8"> https://www.todaytvseries.club/tvshows/halt-and-catch-fire/ </font></b></p>
 
 <p><b><font size="16"> https://stackoverflow.com/questions/21743800/call-asynctask-from-broadcast-receiver-android </font></b></p>
+
+<p><b> Using AsyncTask in BroadcastReceiver is a bad practice. You should use Service because Android OS may kill your process or onReceive() may run to completion before asyncTask will return result, so there is no guarantee you will get the expected result. </p></b>
+
+<p><b> You shouldn't use AsyncTask in Broadcast Receiver because the system can kill your process after returning from onReceive method (if there is no any active service or activity). "Proof link" Official documentation recommends IntentService for such cases (see paragraph about Broadcast Receivers). </p></b>
