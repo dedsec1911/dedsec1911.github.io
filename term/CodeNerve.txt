@@ -5,11 +5,11 @@ My favorite code quote, "<span id="k">Hello Everyone</span>".
 Hey There! Welcome to my Portfolio 
 <!-- <p>You can see that, this is how your portfolio would look like.</p> -->
 <p>Hi! I'm Harshul</p>
-<p>Quiet people always know more than they seem. Although very normal, their inner world is by default fronted mysterious and therefore assumed weird. Never underestimate the social awareness and sense of reality in a quiet person; they are some of the most observant, absorbent persons of all.</p>
+<p>Hello Everyone, I'm a CS graduate from Gyan Ganga Institute of Technology & Sciences. I love to code, I've worked on few technologies like Java, Kotlin, PHP, Material Design, Debugging, MySQL and counting. I have my interests in Ethical Hacking as well.</p>
 <p> Technologies I've worked on: Mobile Application Development, UI/UX Design, Networking, Debugging, Prototyping and Product Testing. <a href="link"> portfolio</a>.</p><!-- kjdhjhgdgldjhgdwtoiewotwotjdfkjdfffsf -->
-<p>“Everybody should learn to program a computer, because it teaches you how to think.” <br><br><br>Here's my Resume <a href="https://dedsec1911.github.io/resume.pdf"> Resume </a>.</p>
+<p>“Everybody should learn to program a computer, because it teaches you how to think.” <br><br><br>Here's my Resume <a href="https://dedsec1911.github.io/resume.pdf"> Resume. </a></p>
 <p> Check me out on social media, here: <br> <a href="https://www.instagram.com/_harshul_/">Instagram</a> <br> <a href="https://twitter.com/dedsec1911">Twitter</a> and <br> <a href="https://www.facebook.com/harshul.vishwakarma">Facebook</a>.</p>
 
-, Feel free to send me an email at <a href="mailTo:harshu40116@gmail.com">Email</a>.
+Feel free to send me an email at <a href="mailTo:harshu40116@gmail.com">Email</a>.
 
 <p>Cheers!</p>
