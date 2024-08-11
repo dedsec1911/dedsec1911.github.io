@@ -4,42 +4,46 @@ $(document).ready(function() {
 
 	let count = 0;
 
-	setInterval(() => {
-			if(textArray[count] === "\n") {
-					textElem.append("<br>");
-			}
-			else {
-					textElem.append(`<span class="hacking-animation__character">${textArray[count]}</span>`);
-			}
+	const intervalId = setInterval(() => {
+        if (textArray[count] === "\n") {
+            textElem.append("<br>");
+        } else {
+            textElem.append(`<span class="hacking-animation__character">${textArray[count]}</span>`);
+        }
 
 			count++;
 			if (count === textArray.length) {
-					count = 0;
-			}
-	}, 20);
+            clearInterval(intervalId);
+        }
+	}, 1);
 });
 
 var textString = `.
 .
-///cqrCyber Console///
-    <umarcbs@hacking>:::cqrCyber
+///cqr Console///
+    <dedsec@1911>:::cqrCyber
            Commence winterhacking module@cqrcyber.10.10.20
-           ...Connecting Kashmir...NO ANSWER
+           ...Connecting STARK INDUSTRIES...NO ANSWER
+           ...JARVIS voicemail :.... 
+           ...
+           ...
+           ...
+           >>> Transcripted : Fuck OFF
 ...
 ...
 //BornToHack&Crack\\\\
             ://StopcallingVictim...
             (**NO AnsWER**)....
                     PLEASE ...//STOP CALLING Victim...
-{enter. your. Name.}/// -- \\\\Umar Farooq\\\\
+{enter. your. Name.}/// -- \\\\Harshul\\\\
   <M> Connecting Victim..:":":":
   ff
 
-<original hacker...>
+<original user credentials...>
                 / if
          -----sin close--
-         ....hacker@hacking or admin@cqrCyber;
-                     !!!HACKer/Cracker!!!!404
+         ....wtf@biatch or admin@cqr;
+                     !!!HAXX/CAXX!!!!404
 .
 .
 .
@@ -60,8 +64,8 @@ LOAD .       $%$%$qazWSXedcRFVtgbYHNujmIKol$%$%$%
 
 ZXC..<>Ckfkd<>vkvodkskclc...
                          { VODKA3421D;CODE10011011101011
-                        ( B+ HACKING..//YOULOSTALLYOURBITCOIN )
-<\\\\boeie\\\\..www.btchackerscentral.com\\\\
+                        ( B+ HAXX..//YOULOSTALLYOURBITCOIN )
+<\\\\boeie\\\\..www.btchashcentral.com\\\\
 **(AR)12. (696); (96).ffkeoslk
              0617513060 <<<<>OKAY
              {FOntsize}:Hard.. FONTMANAGE 22 //
@@ -83,11 +87,33 @@ NORMALIZE CLothing ?? >> {STRING LOST}
 /string found
 ///BetterCheckYourDrawers
 ....ALSOFOUNDILDO
-          ///(SHUTDOWN HACKING)
+          ///(SHUTTING DOWN)
              {WHIPEDRIVE}
           whipe not found..
 S1293 K // P 430
-         @cqrcyber.. VERSION 10.10.20.1067
+
+         Hit me up on ⠀⠀⠀⠀⠀
+         ⢀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣠⣴⣷⣶⣶⣤⣄⠀⠀⠀
+⠀⠀⢀⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀
+⠀⢠⣿⣿⣿⣿⣿⡿⠟⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠻⢿⣿⣿⣿⣿⣿⣿⣆
+⠀⣼⣿⣿⣿⡿⠋⢀⣠⣴⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣤⡀⠈⢻⣿⣯⣿⣿⣻
+⠡⣿⣿⣿⣿⠁⢠⣿⣿⣿⣿⣿⣿⡿⣿⢿⣿⣿⣟⠉⠙⣿⡆⠀⢿⣿⣟⣿⣽
+⡁⣿⣿⣿⡿⠀⣸⣿⣿⣿⡿⠋⠀⣀⣠⣀⠈⠙⢿⣶⣾⣿⡷⠀⢺⣿⣿⡷⠊
+⡀⣿⣿⣿⡟⠀⢸⣿⣿⡿⠀⢠⣿⣿⡿⣿⣿⣆⠀⢻⣿⣽⣟⠀⢼⣿⣿⡽⠀
+⡐⣿⣿⢿⣯⠀⢸⣿⣟⣧⠀⢿⣿⣳⣿⣟⣷⣿⠀⢸⣿⣯⡷⠀⢸⣿⣟⡿⠀
+⢧⣿⣻⡿⣷⠀⢸⣿⡽⣿⡄⠈⠿⣿⣾⣽⠾⠃⢀⣿⣿⡽⣟⠀⢺⣿⣟⡿⠀
+⣯⣷⢿⣻⣿⠀⢸⡿⣽⣳⢿⣶⣄⣀⣀⣀⣠⣴⡿⣟⣷⣿⡯⠀⣽⣿⣻⣟⠀
+⣷⣟⣯⢷⣻⡆⠈⢿⣳⢯⣛⡾⡽⢯⣟⡿⣯⢿⣽⣻⣽⡾⠃⢀⣿⣿⣽⡯⣄
+⢿⣟⡞⣯⢳⣛⢦⡀⠉⠙⠛⠚⠛⠛⠚⠛⠛⠛⠛⠋⠉⢀⣠⣾⣿⣻⣾⢿⣟
+⠈⢿⣞⡱⢳⡌⢧⡙⡛⠖⡶⠲⠖⣆⢖⡲⢶⢶⡶⣾⣾⢿⣟⣿⣽⡿⣽⣿⠃
+⠀⠈⠻⢷⣧⣘⣢⠡⠙⢌⠰⢉⠚⠤⢋⠼⣩⢞⣹⢳⣯⢿⣞⣿⣾⡿⠟⠁⠀
+⠀⠀⠀⠀⠉⠓⠛⠛⠿⠛⠟⠻⠛⠟⠻⠻⠝⠯⠛⠯⠛⢟⠛⣓⠋⠁⠀⠀⠀
+
+                : _harshul_
+>
+>
+>
+>        @cqr.. VERSION 10.10.20.1067
 ...
 .....
 ...
