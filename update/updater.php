@@ -9,3 +9,5 @@ $updateInfo = [
 ];
 
 echo json_encode($updateInfo);
+
+?>
