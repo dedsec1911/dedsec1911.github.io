@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech to Ollama</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        #startButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #startButton.listening {
+            background-color: #f44336;
+        }
+        #ollamaUrl {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        #modelSelect {
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        #transcript, #response {
+            min-height: 100px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .status {
+            font-style: italic;
+            color: #666;
+        }
+        .settings {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Speech to Ollama (Local)</h1>
+        
+        <div class="settings">
+            <h3>Connection Settings</h3>
+            <label for="ollamaUrl">Ollama URL:</label>
+            <input type="text" id="ollamaUrl" value="http://localhost:11434/api/generate" placeholder="http://localhost:11434/api/generate">
+            
+            <label for="modelSelect">Model:</label>
+            <select id="modelSelect">
+                <option value="llama2">llama2</option>
+                <option value="mistral">mistral</option>
+                <option value="gemma">gemma</option>
+                <option value="phi">phi</option>
+            </select>
+        </div>
+        
+        <button id="startButton">Start Listening</button>
+        <p class="status" id="status">Press the button and speak</p>
+        
+        <h2>Your Speech:</h2>
+        <div id="transcript"></div>
+        
+        <h2>Ollama Response:</h2>
+        <div id="response"></div>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const transcript = document.getElementById('transcript');
+        const responseDiv = document.getElementById('response');
+        const status = document.getElementById('status');
+        const ollamaUrlInput = document.getElementById('ollamaUrl');
+        const modelSelect = document.getElementById('modelSelect');
+        
+        let recognition;
+        let isListening = false;
+        
+        // Check for browser support
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            status.textContent = 'Speech recognition not supported in this browser. Try Chrome or Edge.';
+            startButton.disabled = true;
+        } else {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                isListening = true;
+                startButton.classList.add('listening');
+                startButton.textContent = 'Listening...';
+                status.textContent = 'Listening... Speak now.';
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                startButton.classList.remove('listening');
+                startButton.textContent = 'Start Listening';
+                if (transcript.textContent.trim() === '') {
+                    status.textContent = 'No speech detected. Try again.';
+                }
+            };
+            
+            recognition.onresult = async (event) => {
+                const speechResult = event.results[0][0].transcript;
+                transcript.textContent = speechResult;
+                status.textContent = 'Processing with Ollama...';
+                
+                try {
+                    const ollamaUrl = ollamaUrlInput.value;
+                    const model = modelSelect.value;
+                    
+                    const response = await fetchOllamaResponse(ollamaUrl, model, speechResult);
+                    responseDiv.textContent = response;
+                    status.textContent = 'Done. Press button to speak again.';
+                } catch (error) {
+                    responseDiv.textContent = 'Error: ' + error.message;
+                    status.textContent = 'Error occurred.';
+                    console.error('Ollama error:', error);
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+                status.textContent = 'Error: ' + event.error;
+                isListening = false;
+                startButton.classList.remove('listening');
+                startButton.textContent = 'Start Listening';
+            };
+            
+            startButton.addEventListener('click', () => {
+                if (isListening) {
+                    recognition.stop();
+                } else {
+                    transcript.textContent = '';
+                    responseDiv.textContent = '';
+                    status.textContent = 'Starting...';
+                    recognition.start();
+                }
+            });
+        }
+        
+        async function fetchOllamaResponse(url, model, prompt) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: model,
+                    prompt: prompt,
+                    stream: false
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Ollama request failed: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.response;
+        }
+    </script>
+</body>
+</html>
