@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const models = {
   model: 'DeepSeek-R1-0528',
-  api_key: '<YOUR_SAMBANOVA_API_KEY>',
+  api_key: 'eb4b1055-8e86-4286-8767-2ebdd6590df5',
   base_url: 'https://api.sambanova.ai/v1'
 }
 
