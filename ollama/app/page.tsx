@@ -1,6 +1,28 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import MicIcon from '@mui/icons-material/Mic'
+import MicOffIcon from '@mui/icons-material/MicOff'
+import SendIcon from '@mui/icons-material/Send'
+import { styled } from '@mui/material/styles'
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Container,
+  Divider,
+  FormControl,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  Typography,
+  Avatar
+} from '@mui/material'
 
 const models = {
   model: 'DeepSeek-R1-0528',
@@ -11,7 +33,41 @@ const models = {
 const experienceOptions = ['0', '1', '2', '3', '5', '10', '15+']
 const fieldOptions = ['Frontend', 'Backend', 'Fullstack', 'Data Science', 'Mobile', 'DevOps']
 
-export default function Home() {
+const StyledTextField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '28px',
+    backgroundColor: '#f5f5f5',
+    '&.Mui-focused': {
+      backgroundColor: '#fff',
+      boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)'
+    }
+  }
+})
+
+const StyledButton = styled(Button)({
+  borderRadius: '28px',
+  padding: '10px 24px',
+  textTransform: 'none',
+  fontWeight: 600,
+  boxShadow: 'none',
+  '&:hover': {
+    boxShadow: 'none'
+  }
+})
+
+const AssistantAvatar = styled(Avatar)({
+  backgroundColor: '#1976d2',
+  width: 32,
+  height: 32
+})
+
+const UserAvatar = styled(Avatar)({
+  backgroundColor: '#4caf50',
+  width: 32,
+  height: 32
+})
+
+export default function VoiceChatAssistant() {
   const [transcript, setTranscript] = useState('')
   const [listening, setListening] = useState(false)
   const [messages, setMessages] = useState<any[]>([])
@@ -37,103 +93,199 @@ export default function Home() {
     }
   }, [])
 
-  const handleStart = () => {
-    setTranscript('')
-    setListening(true)
-    recognitionRef.current?.start()
-  }
-
-  const handleStop = () => {
-    recognitionRef.current?.stop()
-    setListening(false)
+  const toggleListening = () => {
+    if (listening) {
+      recognitionRef.current?.stop()
+      setListening(false)
+    } else {
+      setTranscript('')
+      recognitionRef.current?.start()
+      setListening(true)
+    }
   }
 
   const sendToAssistant = async () => {
+    if (!transcript.trim()) return
+    
     const userMessage = { role: 'user', content: transcript }
     const systemMessage = {
       role: 'system',
-      content: `You are a helpful assistant for a developer with ${experience} years of experience in ${field}.`
+      content: `You are a helpful assistant for a developer with ${experience} years of experience in ${field}. Provide detailed, professional responses.`
     }
 
     const chatHistory = [systemMessage, ...messages.filter((m) => m.role !== 'system'), userMessage]
     setMessages([...messages, userMessage])
+    setTranscript('')
 
-    const res = await fetch(`${models.base_url}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${models.api_key}`
-      },
-      body: JSON.stringify({
-        model: models.model,
-        messages: chatHistory,
-        temperature: 0.1,
-        top_p: 0.1
+    try {
+      const res = await fetch(`${models.base_url}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${models.api_key}`
+        },
+        body: JSON.stringify({
+          model: models.model,
+          messages: chatHistory,
+          temperature: 0.1,
+          top_p: 0.1
+        })
       })
-    })
 
-    const data = await res.json()
-    const assistantMessage = data.choices?.[0]?.message
-    if (assistantMessage) {
-      setMessages([...chatHistory, assistantMessage])
+      const data = await res.json()
+      const assistantMessage = data.choices?.[0]?.message
+      if (assistantMessage) {
+        setMessages([...chatHistory, assistantMessage])
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.'
+      }])
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendToAssistant()
     }
   }
 
   return (
-    <main className="p-6 max-w-3xl mx-auto font-sans">
-      <h1 className="text-2xl font-bold mb-4">Voice Chat Assistant</h1>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Card elevation={3} sx={{ borderRadius: 4 }}>
+        <CardContent sx={{ p: 0 }}>
+          <Box sx={{ p: 3, borderBottom: '1px solid rgba(0,0,0,0.12)' }}>
+            <Typography variant="h5" component="h1" fontWeight="bold">
+              AI Developer Assistant
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Get expert help based on your experience level
+            </Typography>
+          </Box>
 
-      <div className="flex gap-4 mb-4">
-        <select
-          className="border rounded p-2 w-1/2"
-          value={experience}
-          onChange={(e) => setExperience(e.target.value)}
-        >
-          <option value="">Experience in years</option>
-          {experienceOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
-        <select
-          className="border rounded p-2 w-1/2"
-          value={field}
-          onChange={(e) => setField(e.target.value)}
-        >
-          <option value="">Technology/Field</option>
-          {fieldOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
-      </div>
+          <Box sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Experience</InputLabel>
+                <Select
+                  value={experience}
+                  label="Experience"
+                  onChange={(e: SelectChangeEvent) => setExperience(e.target.value)}
+                  sx={{ borderRadius: '28px' }}
+                >
+                  <MenuItem value="">
+                    <em>Select years</em>
+                  </MenuItem>
+                  {experienceOptions.map((opt) => (
+                    <MenuItem key={opt} value={opt}>{opt} {opt === '15+' ? 'years' : opt === '0' ? 'years (Student)' : 'years'}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
-      <div className="flex gap-4 mb-4">
-        <button onClick={handleStart} className="bg-gray-200 px-4 py-2 rounded">Start Listening</button>
-        <button onClick={handleStop} className="bg-gray-200 px-4 py-2 rounded">Stop Listening</button>
-      </div>
+              <FormControl fullWidth size="small">
+                <InputLabel>Field</InputLabel>
+                <Select
+                  value={field}
+                  label="Field"
+                  onChange={(e: SelectChangeEvent) => setField(e.target.value)}
+                  sx={{ borderRadius: '28px' }}
+                >
+                  <MenuItem value="">
+                    <em>Select field</em>
+                  </MenuItem>
+                  {fieldOptions.map((opt) => (
+                    <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
 
-      <textarea
-        value={transcript}
-        onChange={(e) => setTranscript(e.target.value)}
-        className="w-full p-3 border rounded mb-4"
-        rows={3}
-        placeholder="Speak or type your message..."
-      />
+            <Box sx={{ mb: 3, maxHeight: '400px', overflowY: 'auto', p: 1 }}>
+              {messages.map((m, i) => (
+                <Box key={i} sx={{ 
+                  display: 'flex', 
+                  gap: 2, 
+                  mb: 2,
+                  flexDirection: m.role === 'user' ? 'row-reverse' : 'row'
+                }}>
+                  {m.role === 'assistant' ? (
+                    <AssistantAvatar>A</AssistantAvatar>
+                  ) : (
+                    <UserAvatar>U</UserAvatar>
+                  )}
+                  <Box sx={{ 
+                    maxWidth: '80%',
+                    p: 2,
+                    borderRadius: m.role === 'user' ? '18px 18px 0 18px' : '18px 18px 18px 0',
+                    bgcolor: m.role === 'user' ? '#e3f2fd' : '#f5f5f5'
+                  }}>
+                    <Typography variant="body1">{m.content}</Typography>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
 
-      <button
-        onClick={sendToAssistant}
-        className="bg-black text-white px-4 py-2 rounded mb-4"
-        disabled={!transcript || !experience || !field}
-      >
-        Send
-      </button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <StyledTextField
+                fullWidth
+                multiline
+                maxRows={4}
+                value={transcript}
+                onChange={(e) => setTranscript(e.target.value)}
+                placeholder="Type or speak your message..."
+                onKeyPress={handleKeyPress}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <StyledButton
+                        variant={listening ? 'contained' : 'outlined'}
+                        color={listening ? 'error' : 'primary'}
+                        onClick={toggleListening}
+                        sx={{ minWidth: 'auto', p: 1 }}
+                      >
+                        {listening ? <MicOffIcon /> : <MicIcon />}
+                      </StyledButton>
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <StyledButton
+                        variant="contained"
+                        color="primary"
+                        onClick={sendToAssistant}
+                        disabled={!transcript.trim() || !experience || !field}
+                        endIcon={<SendIcon />}
+                        sx={{ minWidth: 'auto', p: 1 }}
+                      >
+                        Send
+                      </StyledButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Box>
 
-      <div className="mt-4">
-        {messages.map((m, i) => (
-          <div key={i} className="mb-2">
-            <strong>{m.role === 'user' ? 'You' : 'Assistant'}:</strong> {m.content}
-          </div>
-        ))}
-      </div>
-    </main>
+            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+              <Chip 
+                label={listening ? "Listening..." : "Press mic to speak"} 
+                size="small" 
+                color={listening ? 'error' : 'default'}
+                icon={listening ? <MicOffIcon fontSize="small" /> : <MicIcon fontSize="small" />}
+              />
+              {experience && field && (
+                <Chip 
+                  label={`${experience} years in ${field}`} 
+                  size="small" 
+                  color="info"
+                />
+              )}
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    </Container>
   )
 }
