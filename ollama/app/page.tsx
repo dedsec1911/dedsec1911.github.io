@@ -209,7 +209,7 @@ export default function VoiceChatAssistant() {
           multiline
           rows={2}
           value={transcript}
-          onChange={(e) => setTranscript(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTranscript(e.target.value)}
           placeholder="Type or speak your message..."
           sx={{ bgcolor: '#f5f5f5' }}
         />
