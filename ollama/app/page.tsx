@@ -1,61 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { Box, Typography, Button, CircularProgress } from '@mui/material';
+import { useEffect, useRef, useState } from 'react';
+import { Box, Typography, Button, CircularProgress, TextField } from '@mui/material';
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
-
-// Type declarations for Web Speech API
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
-}
-
-interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionResult {
-  0: SpeechRecognitionAlternative;
-  readonly length: number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-interface SpeechRecognitionErrorEvent extends Event {
-  error: 'no-speech' | 'aborted' | 'audio-capture' | 'network' | 'not-allowed' | 'service-not-allowed' | 'bad-grammar' | 'language-not-supported';
-  message: string;
-}
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  maxAlternatives: number;
-  onresult: (event: SpeechRecognitionEvent) => void;
-  onerror: (event: SpeechRecognitionErrorEvent) => void;
-  onend: () => void;
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-}
-
-declare var SpeechRecognition: {
-  prototype: SpeechRecognition;
-  new (): SpeechRecognition;
-};
-
-declare var webkitSpeechRecognition: {
-  prototype: SpeechRecognition;
-  new (): SpeechRecognition;
-};
+import SendIcon from '@mui/icons-material/Send';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -77,6 +26,14 @@ export default function VoiceChatAssistant() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const responseCache = useRef<Record<string, string>>({});
 
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
   const toggleListening = () => {
     if (listening) {
       recognitionRef.current?.stop();
@@ -97,7 +54,7 @@ export default function VoiceChatAssistant() {
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         const results = event.results;
         const transcript = Array.from(results)
-          .map((result: SpeechRecognitionResult) => result[0].transcript)
+          .map((result) => result[0].transcript)
           .join('');
         setTranscript(transcript);
       };
