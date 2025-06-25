@@ -11,7 +11,7 @@ import {
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
 import SendIcon from '@mui/icons-material/Send';
-import MarkdownRenderer from '@/components/MarkdownRenderer';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 interface Message {
   role: 'user' | 'assistant';
