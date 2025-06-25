@@ -22,45 +22,27 @@ export default function OptimizedVoiceChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
   const [partialResponse, setPartialResponse] = useState('')
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<any>(null)
   const responseCache = useRef<Record<string, string>>({})
 
-  // Properly typed debounce hook
-  const useDebounce = <T extends (...args: any[]) => void>(
-    callback: T,
-    delay: number
-  ) => {
-    const timerRef = useRef<NodeJS.Timeout | null>(null)
-    
-    useEffect(() => {
-      return () => {
-        if (timerRef.current) {
-          clearTimeout(timerRef.current)
-        }
-      }
-    }, [])
-    
-    return useCallback((...args: Parameters<T>) => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-      }
-      timerRef.current = setTimeout(() => callback(...args), delay)
-    }, [callback, delay])
-  }
-
-  const debouncedToggleListening = useDebounce(() => {
+  const toggleListening = () => {
     if (listening) {
       recognitionRef.current?.stop()
       setListening(false)
     } else {
       setTranscript('')
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+      if (!SpeechRecognition) {
+        console.error('Speech Recognition not supported')
+        return
+      }
+      
       const recognition = new SpeechRecognition()
       recognition.continuous = false
       recognition.interimResults = true
       recognition.maxAlternatives = 1
       
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognition.onresult = (event: any) => {
         const transcript = Array.from(event.results)
           .map(result => result[0])
           .map(result => result.transcript)
@@ -68,7 +50,7 @@ export default function OptimizedVoiceChat() {
         setTranscript(transcript)
       }
       
-      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      recognition.onerror = (event: any) => {
         console.error('Speech recognition error', event.error)
         setListening(false)
       }
@@ -79,7 +61,7 @@ export default function OptimizedVoiceChat() {
       setListening(true)
       recognitionRef.current = recognition
     }
-  }, 300)
+  }
 
   const sendToAssistant = async () => {
     if (!transcript.trim() || loading) return
