@@ -1,15 +1,26 @@
-// types/global.d.ts
+// types/speech-recognition.d.ts
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
 }
 
+interface SpeechRecognitionResult {
+  0: SpeechRecognitionAlternative;
+  readonly length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
 interface SpeechRecognitionErrorEvent extends Event {
-  error: string;
+  error: 'no-speech' | 'aborted' | 'audio-capture' | 'network' | 'not-allowed' | 'service-not-allowed' | 'bad-grammar' | 'language-not-supported';
   message: string;
 }
 
 interface SpeechRecognition extends EventTarget {
-  new (): SpeechRecognition;
   continuous: boolean;
   interimResults: boolean;
   lang: string;
@@ -31,8 +42,3 @@ declare var webkitSpeechRecognition: {
   prototype: SpeechRecognition;
   new (): SpeechRecognition;
 };
-
-interface Window {
-  SpeechRecognition: typeof SpeechRecognition;
-  webkitSpeechRecognition: typeof SpeechRecognition;
-}
