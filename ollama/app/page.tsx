@@ -5,6 +5,10 @@ import { Box, Typography, Button, CircularProgress, TextField } from '@mui/mater
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
 import SendIcon from '@mui/icons-material/Send';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'prism-react-renderer';
+import { materialLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -33,6 +37,48 @@ export default function VoiceChatAssistant() {
       }
     };
   }, []);
+
+// Create a MarkdownRenderer component
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        h1: ({ node, ...props }) => <Typography variant="h4" gutterBottom {...props} />,
+        h2: ({ node, ...props }) => <Typography variant="h5" gutterBottom {...props} />,
+        h3: ({ node, ...props }) => <Typography variant="h6" gutterBottom {...props} />,
+        p: ({ node, ...props }) => <Typography variant="body1" paragraph {...props} />,
+        ul: ({ node, ...props }) => <Typography component="ul" sx={{ pl: 4 }} {...props} />,
+        ol: ({ node, ...props }) => <Typography component="ol" sx={{ pl: 4 }} {...props} />,
+        li: ({ node, ...props }) => <Typography component="li" {...props} />,
+        table: ({ node, ...props }) => (
+          <Box component="div" sx={{ overflowX: 'auto' }}>
+            <Box component="table" sx={{ minWidth: 650 }} {...props} />
+          </Box>
+        ),
+        code({ node, inline, className, children, ...props }) {
+          const match = /language-(\w+)/.exec(className || '');
+          return !inline && match ? (
+            <SyntaxHighlighter
+              style={materialLight}
+              language={match[1]}
+              PreTag="div"
+              {...props}
+            >
+              {String(children).replace(/\n$/, '')}
+            </SyntaxHighlighter>
+          ) : (
+            <code className={className} {...props}>
+              {children}
+            </code>
+          );
+        },
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+};
 
   const toggleListening = () => {
     if (listening) {
@@ -179,10 +225,11 @@ export default function VoiceChatAssistant() {
                 p: 2,
                 borderRadius: message.role === 'user' ? '18px 18px 0 18px' : '18px 18px 18px 0',
                 bgcolor: message.role === 'user' ? '#e3f2fd' : '#f5f5f5',
-                maxWidth: '80%'
+                maxWidth: '80%',
+                width: '100%'
               }}
             >
-              <Typography variant="body1">{message.content}</Typography>
+              <MarkdownRenderer content={message.content} />
             </Box>
           </Box>
         ))}
