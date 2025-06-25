@@ -1,5 +1,4 @@
 // components/MarkdownRenderer.tsx
-import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -12,28 +11,27 @@ interface MarkdownRendererProps {
 }
 
 const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
-  const components: Components = {
-    h1: ({ node, ...props }) => (
+  /* --------------------------------------------------------- *
+   * Every heading gets  (node, level, ...props)
+   * --------------------------------------------------------- */
+  const components = {
+    h1: ({ node, level, ...props }) => (
       <Typography variant="h4" gutterBottom {...props} />
     ),
-    h2: ({ node, ...props }) => (
+    h2: ({ node, level, ...props }) => (
       <Typography variant="h5" gutterBottom {...props} />
     ),
-    h3: ({ node, ...props }) => (
+    h3: ({ node, level, ...props }) => (
       <Typography variant="h6" gutterBottom {...props} />
     ),
-    p: ({ node, ...props }) => (
-      <Typography variant="body1" paragraph {...props} />
-    ),
-    ul: ({ node, ...props }) => (
-      <Typography component="ul" sx={{ pl: 4 }} {...props} />
-    ),
-    ol: ({ node, ...props }) => (
-      <Typography component="ol" sx={{ pl: 4 }} {...props} />
-    ),
-    li: ({ node, ...props }) => (
-      <Typography component="li" {...props} />
-    ),
+
+    /* paragraphs & lists */
+    p:  ({ node, ...props }) => <Typography variant="body1" paragraph {...props} />,
+    ul: ({ node, ...props }) => <Typography component="ul" sx={{ pl: 4 }} {...props} />,
+    ol: ({ node, ...props }) => <Typography component="ol" sx={{ pl: 4 }} {...props} />,
+    li: ({ node, ...props }) => <Typography component="li" {...props} />,
+
+    /* tables */
     table: ({ node, ...props }) => (
       <Box component="div" sx={{ overflowX: 'auto', my: 2 }}>
         <Box component="table" sx={{ minWidth: 650, borderCollapse: 'collapse' }} {...props} />
@@ -46,11 +44,13 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
       <Box component="tr" sx={{ borderBottom: 1, borderColor: 'divider' }} {...props} />
     ),
     th: ({ node, ...props }) => (
-      <Box component="th" sx={{ p: 1.5, textAlign: 'left', fontWeight: 'bold' }} {...props} />
+      <Box component="th" sx={{ p: 1.5, fontWeight: 'bold' }} {...props} />
     ),
     td: ({ node, ...props }) => (
       <Box component="td" sx={{ p: 1.5 }} {...props} />
     ),
+
+    /* code */
     code({ node, inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className || '');
       return !inline && match ? (
@@ -80,6 +80,8 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
         </Box>
       );
     },
+
+    /* blockquote */
     blockquote: ({ node, ...props }) => (
       <Box
         component="blockquote"
@@ -94,7 +96,7 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
         {...props}
       />
     ),
-  };
+  } satisfies Components;   // ⬅️  guarantees correct shape
 
   return (
     <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
