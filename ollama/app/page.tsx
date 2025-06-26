@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react';
-import { Box, Typography, Button, CircularProgress, TextField } from '@mui/material';
+import { Box, Typography, CircularProgress, TextField } from '@mui/material';
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
 import SendIcon from '@mui/icons-material/Send';
+import Button from '@mui/material/Button';
 
 interface Message {
   role: 'user' | 'assistant';
