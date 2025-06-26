@@ -104,11 +104,19 @@ export default function VoiceChatAssistant() {
         },
         body: JSON.stringify({
           model: models.model,
-          messages: [{ role: 'user', content: transcript }],
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a helpful, concise assistant. Reply with the final answer only — no <think> or </think> tags."
+            },
+            { role: "user", content: transcript }
+          ],
           temperature: 0.1,
           top_p: 0.1,
           stream: true,
-          prompt: "You are a helpful and concise assistant. Only respond with your final message. No inner thoughts."
+          enable_thinking: false,
+          // thinking_budget: 0,    // alternative: budget = 0 tokens
         }),
         signal: controller.signal
       });
