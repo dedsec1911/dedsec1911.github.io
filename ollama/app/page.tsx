@@ -107,7 +107,8 @@ export default function VoiceChatAssistant() {
           messages: [{ role: 'user', content: transcript }],
           temperature: 0.1,
           top_p: 0.1,
-          stream: true
+          stream: true,
+          prompt: "You are a helpful and concise assistant. Only respond with your final message. No inner thoughts."
         }),
         signal: controller.signal
       });
