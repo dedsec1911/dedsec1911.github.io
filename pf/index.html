@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profile Card Demo</title>
+
+  <!-- Component styles -->
+  <link rel="stylesheet" href="ProfileCard.css" />
+
+  <!-- Dark background for contrast (optional) -->
+  <style>
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#0e152e;
+      font-family: system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React + ReactDOM (UMD) -->
+  <script
+    crossorigin
+    src="https://unpkg.com/react@18/umd/react.production.min.js">
+  </script>
+  <script
+    crossorigin
+    src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js">
+  </script>
+
+  <!-- Babel‑standalone so the browser can read JSX directly -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Your component (compiled by Babel in‑browser) -->
+  <script type="text/babel" src="ProfileCard.js"></script>
+
+  <!-- Tiny “app” that renders one card -->
+  <script type="text/babel">
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+
+    root.render(
+      <ProfileCard
+        name="Javi A. Torres"
+        title="Software Engineer"
+        handle="javicodes"
+        status="Online"
+        contactText="Contact Me"
+        avatarUrl="avatar.jpg"          {/* or any URL */}
+        showUserInfo={true}
+        enableTilt={true}
+        onContactClick={() => alert("Contact clicked")}
+      />
+    );
+  </script>
+</body>
+</html>
