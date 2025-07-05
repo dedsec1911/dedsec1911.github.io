@@ -1,24 +1,5 @@
-/* eslint-disable no-undef */
-/* ------------------------------------------
-   ProfileCard component
-   ‑ removed ES module import/export so it
-     runs directly in the browser
--------------------------------------------*/
-
-/* Grab hooks from the global React */
-const {
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-  memo
-} = React;
-
-/* ---- your original code, only 2 changes ----
-   1. The top‑level import line is gone.
-   2. The bottom export default is replaced by
-      `window.ProfileCard = ProfileCard;`
----------------------------------------------*/
+import React, { useEffect, useRef, useCallback, useMemo } from "react";
+import "./ProfileCard.css";
 
 const DEFAULT_BEHIND_GRADIENT =
   "radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(266,100%,90%,var(--card-opacity)) 4%,hsla(266,50%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(266,25%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(266,0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,#00ffaac4 0%,#073aff00 100%),radial-gradient(100% 100% at 50% 50%,#00c1ffff 1%,#073aff00 76%),conic-gradient(from 124deg at 50% 50%,#c137ffff 0%,#07c6ffff 40%,#07c6ffff 60%,#c137ffff 100%)";
@@ -36,8 +17,7 @@ const ANIMATION_CONFIG = {
 const clamp = (value, min = 0, max = 100) =>
   Math.min(Math.max(value, min), max);
 
-const round = (value, precision = 3) =>
-  parseFloat(value.toFixed(precision));
+const round = (value, precision = 3) => parseFloat(value.toFixed(precision));
 
 const adjust = (value, fromMin, fromMax, toMin, toMax) =>
   round(toMin + ((toMax - toMin) * (value - fromMin)) / (fromMax - fromMin));
@@ -66,9 +46,9 @@ const ProfileCardComponent = ({
   const wrapRef = useRef(null);
   const cardRef = useRef(null);
 
-  /* ------------ animation logic ------------- */
   const animationHandlers = useMemo(() => {
     if (!enableTilt) return null;
+
     let rafId = null;
 
     const updateCardTransform = (offsetX, offsetY, card, wrap) => {
@@ -92,7 +72,10 @@ const ProfileCardComponent = ({
         "--rotate-x": `${round(-(centerX / 5))}deg`,
         "--rotate-y": `${round(centerY / 4)}deg`,
       };
-      Object.entries(properties).forEach(([k, v]) => wrap.style.setProperty(k, v));
+
+      Object.entries(properties).forEach(([property, value]) => {
+        wrap.style.setProperty(property, value);
+      });
     };
 
     const createSmoothAnimation = (duration, startX, startY, card, wrap) => {
@@ -100,116 +83,149 @@ const ProfileCardComponent = ({
       const targetX = wrap.clientWidth / 2;
       const targetY = wrap.clientHeight / 2;
 
-      const loop = (now) => {
-        const t = clamp((now - startTime) / duration);
-        const p = easeInOutCubic(t);
+      const animationLoop = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = clamp(elapsed / duration);
+        const easedProgress = easeInOutCubic(progress);
 
-        updateCardTransform(
-          adjust(p, 0, 1, startX, targetX),
-          adjust(p, 0, 1, startY, targetY),
-          card,
-          wrap
-        );
+        const currentX = adjust(easedProgress, 0, 1, startX, targetX);
+        const currentY = adjust(easedProgress, 0, 1, startY, targetY);
 
-        if (t < 1) rafId = requestAnimationFrame(loop);
+        updateCardTransform(currentX, currentY, card, wrap);
+
+        if (progress < 1) {
+          rafId = requestAnimationFrame(animationLoop);
+        }
       };
-      rafId = requestAnimationFrame(loop);
+
+      rafId = requestAnimationFrame(animationLoop);
     };
 
     return {
       updateCardTransform,
       createSmoothAnimation,
       cancelAnimation: () => {
-        if (rafId) cancelAnimationFrame(rafId);
-        rafId = null;
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
       },
     };
   }, [enableTilt]);
 
   const handlePointerMove = useCallback(
-    (e) => {
-      if (!animationHandlers) return;
+    (event) => {
       const card = cardRef.current;
       const wrap = wrapRef.current;
+
+      if (!card || !wrap || !animationHandlers) return;
+
       const rect = card.getBoundingClientRect();
       animationHandlers.updateCardTransform(
-        e.clientX - rect.left,
-        e.clientY - rect.top,
+        event.clientX - rect.left,
+        event.clientY - rect.top,
         card,
-        wrap
+        wrap,
       );
     },
-    [animationHandlers]
+    [animationHandlers],
   );
 
   const handlePointerEnter = useCallback(() => {
-    if (!animationHandlers) return;
+    const card = cardRef.current;
+    const wrap = wrapRef.current;
+
+    if (!card || !wrap || !animationHandlers) return;
+
     animationHandlers.cancelAnimation();
-    wrapRef.current.classList.add("active");
-    cardRef.current.classList.add("active");
+    wrap.classList.add("active");
+    card.classList.add("active");
   }, [animationHandlers]);
 
   const handlePointerLeave = useCallback(
-    (e) => {
-      if (!animationHandlers) return;
+    (event) => {
+      const card = cardRef.current;
+      const wrap = wrapRef.current;
+
+      if (!card || !wrap || !animationHandlers) return;
+
       animationHandlers.createSmoothAnimation(
         ANIMATION_CONFIG.SMOOTH_DURATION,
-        e.offsetX,
-        e.offsetY,
-        cardRef.current,
-        wrapRef.current
+        event.offsetX,
+        event.offsetY,
+        card,
+        wrap,
       );
-      wrapRef.current.classList.remove("active");
-      cardRef.current.classList.remove("active");
+      wrap.classList.remove("active");
+      card.classList.remove("active");
     },
-    [animationHandlers]
+    [animationHandlers],
   );
 
   useEffect(() => {
     if (!enableTilt || !animationHandlers) return;
 
     const card = cardRef.current;
-    const wrap  = wrapRef.current;
-    card.addEventListener("pointerenter", handlePointerEnter);
-    card.addEventListener("pointermove",  handlePointerMove);
-    card.addEventListener("pointerleave", handlePointerLeave);
+    const wrap = wrapRef.current;
 
-    // initial gentle drift‑in
-    const initialX = wrap.clientWidth  - ANIMATION_CONFIG.INITIAL_X_OFFSET;
+    if (!card || !wrap) return;
+
+    const pointerMoveHandler = handlePointerMove;
+    const pointerEnterHandler = handlePointerEnter;
+    const pointerLeaveHandler = handlePointerLeave;
+
+    card.addEventListener("pointerenter", pointerEnterHandler);
+    card.addEventListener("pointermove", pointerMoveHandler);
+    card.addEventListener("pointerleave", pointerLeaveHandler);
+
+    const initialX = wrap.clientWidth - ANIMATION_CONFIG.INITIAL_X_OFFSET;
     const initialY = ANIMATION_CONFIG.INITIAL_Y_OFFSET;
+
     animationHandlers.updateCardTransform(initialX, initialY, card, wrap);
     animationHandlers.createSmoothAnimation(
       ANIMATION_CONFIG.INITIAL_DURATION,
       initialX,
       initialY,
       card,
-      wrap
+      wrap,
     );
 
     return () => {
-      card.removeEventListener("pointerenter", handlePointerEnter);
-      card.removeEventListener("pointermove",  handlePointerMove);
-      card.removeEventListener("pointerleave", handlePointerLeave);
+      card.removeEventListener("pointerenter", pointerEnterHandler);
+      card.removeEventListener("pointermove", pointerMoveHandler);
+      card.removeEventListener("pointerleave", pointerLeaveHandler);
       animationHandlers.cancelAnimation();
     };
-  }, [enableTilt, animationHandlers, handlePointerEnter, handlePointerMove, handlePointerLeave]);
+  }, [
+    enableTilt,
+    animationHandlers,
+    handlePointerMove,
+    handlePointerEnter,
+    handlePointerLeave,
+  ]);
 
-  /* ------------ inline CSS custom props ------------- */
-  const cardStyle = {
-    "--icon":            iconUrl ? `url(${iconUrl})`           : "none",
-    "--grain":           grainUrl ? `url(${grainUrl})`         : "none",
-    "--behind-gradient": showBehindGradient
-      ? (behindGradient ?? DEFAULT_BEHIND_GRADIENT)
-      : "none",
-    "--inner-gradient":  innerGradient ?? DEFAULT_INNER_GRADIENT,
-  };
+  const cardStyle = useMemo(
+    () => ({
+      "--icon": iconUrl ? `url(${iconUrl})` : "none",
+      "--grain": grainUrl ? `url(${grainUrl})` : "none",
+      "--behind-gradient": showBehindGradient
+        ? (behindGradient ?? DEFAULT_BEHIND_GRADIENT)
+        : "none",
+      "--inner-gradient": innerGradient ?? DEFAULT_INNER_GRADIENT,
+    }),
+    [iconUrl, grainUrl, showBehindGradient, behindGradient, innerGradient],
+  );
 
-  /* ------------ click helper ------------- */
-  const handleContactClick = useCallback(() => onContactClick?.(), [onContactClick]);
+  const handleContactClick = useCallback(() => {
+    onContactClick?.();
+  }, [onContactClick]);
 
-  /* ------------ JSX ------------- */
   return (
-    <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle}>
+    <div
+      ref={wrapRef}
+      className={`pc-card-wrapper ${className}`.trim()}
+      style={cardStyle}
+    >
       <section ref={cardRef} className="pc-card">
         <div className="pc-inside">
           <div className="pc-shine" />
@@ -218,9 +234,12 @@ const ProfileCardComponent = ({
             <img
               className="avatar"
               src={avatarUrl}
-              alt={`${name} avatar`}
+              alt={`${name || "User"} avatar`}
               loading="lazy"
-              onError={(e) => { e.target.style.display = "none"; }}
+              onError={(e) => {
+                const target = e.target;
+                target.style.display = "none";
+              }}
             />
             {showUserInfo && (
               <div className="pc-user-info">
@@ -228,9 +247,13 @@ const ProfileCardComponent = ({
                   <div className="pc-mini-avatar">
                     <img
                       src={miniAvatarUrl || avatarUrl}
-                      alt={`${name} mini avatar`}
+                      alt={`${name || "User"} mini avatar`}
                       loading="lazy"
-                      onError={(e) => { e.target.style.opacity = 0.5; e.target.src = avatarUrl; }}
+                      onError={(e) => {
+                        const target = e.target;
+                        target.style.opacity = "0.5";
+                        target.src = avatarUrl;
+                      }}
                     />
                   </div>
                   <div className="pc-user-text">
@@ -241,8 +264,9 @@ const ProfileCardComponent = ({
                 <button
                   className="pc-contact-btn"
                   onClick={handleContactClick}
+                  style={{ pointerEvents: "auto" }}
                   type="button"
-                  aria-label={`Contact ${name}`}
+                  aria-label={`Contact ${name || "user"}`}
                 >
                   {contactText}
                 </button>
@@ -261,7 +285,6 @@ const ProfileCardComponent = ({
   );
 };
 
-const ProfileCard = memo(ProfileCardComponent);
+const ProfileCard = React.memo(ProfileCardComponent);
 
-/* Expose globally so index.html can use it */
-window.ProfileCard = ProfileCard;
+export default ProfileCard;
