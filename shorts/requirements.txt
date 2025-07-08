@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+yt-dlp
+google-cloud-speech
+google-auth
+opencv-python-headless
+cloudinary
+numpy
+pydantic
