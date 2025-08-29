@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Minimal Chat</title>
   <style>
     body {
@@ -18,31 +18,36 @@
       overflow-y: auto;
       padding: 10px;
       border-bottom: 1px solid #ccc;
+      white-space: pre-wrap;
     }
-    .message {
-      margin: 5px 0;
-    }
-    .user { color: blue; }
-    .bot { color: green; }
+    .message { margin: 5px 0; }
+    .user  { color: #1a73e8; }
+    .bot   { color: #188038; }
     #controls {
       display: flex;
       border-top: 1px solid #ccc;
       padding: 5px;
+      gap: 6px;
     }
     #userInput {
       flex: 1;
-      padding: 5px;
+      padding: 6px 8px;
       font-size: 14px;
     }
     button {
-      margin-left: 5px;
-      padding: 5px 10px;
+      padding: 6px 10px;
       font-size: 14px;
       cursor: pointer;
     }
     #micBtn.listening {
-      background: red;
+      background: #e53935;
       color: white;
+    }
+    #status {
+      padding: 4px 8px;
+      font-size: 12px;
+      color: #666;
+      border-top: 1px solid #eee;
     }
   </style>
 </head>
@@ -52,10 +57,12 @@
 
   <div id="controls">
     <input type="text" id="userInput" placeholder="Type or speak..." />
-    <button id="micBtn">🎤</button>
+    <button id="micBtn" title="Toggle mic">🎤</button>
     <button id="sendBtn">Send</button>
     <button id="clearBtn">Clear</button>
   </div>
+
+  <div id="status"></div>
 
   <script>
     const chat = document.getElementById("chat");
@@ -63,19 +70,20 @@
     const sendBtn = document.getElementById("sendBtn");
     const clearBtn = document.getElementById("clearBtn");
     const micBtn = document.getElementById("micBtn");
+    const statusEl = document.getElementById("status");
 
+    // ---------- Speech Recognition ----------
     let isListening = false;
-    let recognition;
+    let recognition = null;
 
-    // --- Speech Recognition Setup ---
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
-      recognition.continuous = true;
+      recognition.continuous = true;      // keep listening until stopped
+      recognition.interimResults = true;  // live typing
       recognition.lang = 'en-US';
-      recognition.interimResults = true;
 
-      recognition.onresult = function(event) {
+      recognition.onresult = function (event) {
         let interim = '';
         let final = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -86,111 +94,140 @@
             interim += transcript;
           }
         }
-        userInput.value = final + interim;
+        userInput.value = (final + interim).trimStart();
       };
 
-      recognition.onend = function() {
-        if (isListening) recognition.start(); // auto-restart if still listening
+      recognition.onerror = function (e) {
+        statusEl.textContent = "Mic error: " + e.error;
+        isListening = false;
+        micBtn.classList.remove('listening');
       };
-    }
 
-    // ----- Gemini Setup ----- //
-    // async function getGeminiResponse(prompt) {
-    //   const apiKey = "AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw"; 
-    //   const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey, {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({
-    //       contents: [{ role: "user", parts: [{ text: prompt }] }]
-    //     })
-    //   });
-
-    //   const data = await res.json();
-    //   return data.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ No response";
-    // }
-
-    
-    async function getGeminiResponse(prompt) {
-      const apiKey = "AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw";
-    
-      const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }]
-        })
-      });
-    
-      const data = await res.json();
-      console.log("Gemini response:", data); // 👀 debug
-    
-      return (
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        data.candidates?.[0]?.output_text ||  // fallback
-        "⚠️ No response"
-      );
-    }
-
-    async function sendMessage(message) {
-      const response = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: message }],
-              },
-            ],
-          }),
+      recognition.onend = function () {
+        if (isListening) {
+          // auto-restart while toggled on
+          recognition.start();
+        } else {
+          micBtn.classList.remove('listening');
         }
-      );
-    
-      const data = await response.json();
-      // Extract response text
-      const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ No response";
-      return botReply;
+      };
+    } else {
+      micBtn.disabled = true;
+      micBtn.title = "Speech recognition not supported in this browser";
     }
 
-
-    // --- Add Message to Chat ---
-    function addMessage(sender, text) {
-      const div = document.createElement("div");
-      div.classList.add("message", sender);
-      div.textContent = sender.toUpperCase() + ": " + text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    // --- Send Button ---
-    sendBtn.addEventListener("click", async () => {
-      const text = userInput.value.trim();
-      if (!text) return;
-      addMessage("user", text);
-      userInput.value = "";
-      const botReply = await sendMessage(userMessage);
-      addMessage((prev) => [...prev, { role: "bot", text: botReply }]);
-    });
-
-    // --- Clear Chat ---
-    clearBtn.addEventListener("click", () => {
-      chat.innerHTML = "";
-    });
-
-    // --- Mic Button ---
     micBtn.addEventListener("click", () => {
+      if (!recognition) return;
       if (!isListening) {
-        recognition.start();
-        isListening = true;
-        micBtn.classList.add("listening");
+        try {
+          recognition.start();
+          isListening = true;
+          micBtn.classList.add("listening");
+          statusEl.textContent = "Listening… tap mic to stop.";
+        } catch (e) {
+          statusEl.textContent = "Couldn't start mic.";
+        }
       } else {
         recognition.stop();
         isListening = false;
         micBtn.classList.remove("listening");
+        statusEl.textContent = "";
       }
+    });
+
+    // ---------- Gemini 2.0 Flash ----------
+    const GEMINI_API_KEY = "AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw"; // your key
+    const GEMINI_ENDPOINT =
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+
+    async function callGemini(message) {
+      const res = await fetch(`${GEMINI_ENDPOINT}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // You can also pass the key in header if you want:
+          // "X-goog-api-key": GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: message }]
+            }
+          ]
+        })
+      });
+
+      if (!res.ok) {
+        let detail = "";
+        try {
+          const errData = await res.json();
+          detail = errData.error?.message || JSON.stringify(errData);
+        } catch {}
+        throw new Error(`Gemini request failed (${res.status}): ${detail}`);
+      }
+
+      const data = await res.json();
+      // Try common places Gemini returns text:
+      return (
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        data?.candidates?.[0]?.output_text ||
+        "⚠️ No response"
+      );
+    }
+
+    // ---------- Chat Helpers ----------
+    function addMessage(sender, text) {
+      const div = document.createElement("div");
+      div.classList.add("message", sender);
+      div.textContent = `${sender.toUpperCase()}: ${text}`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function handleSend() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      // Stop mic if active (optional)
+      if (isListening && recognition) {
+        recognition.stop();
+        isListening = false;
+        micBtn.classList.remove("listening");
+      }
+
+      addMessage("user", text);
+      userInput.value = "";
+      sendBtn.disabled = true;
+      statusEl.textContent = "Thinking…";
+
+      try {
+        const reply = await callGemini(text);
+        addMessage("bot", reply);
+        statusEl.textContent = "";
+      } catch (err) {
+        addMessage("bot", "⚠️ Error: " + err.message);
+        statusEl.textContent = "Error talking to Gemini.";
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    // ---------- Events ----------
+    sendBtn.addEventListener("click", async () => {
+      await handleSend();
+    });
+
+    userInput.addEventListener("keydown", async (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        await handleSend();
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      chat.innerHTML = "";
+      statusEl.textContent = "";
+      userInput.value = "";
     });
   </script>
 </body>
