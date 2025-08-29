@@ -95,8 +95,24 @@
     }
 
     // ----- Gemini Setup ----- //
+    // async function getGeminiResponse(prompt) {
+    //   const apiKey = "AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw"; 
+    //   const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey, {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({
+    //       contents: [{ role: "user", parts: [{ text: prompt }] }]
+    //     })
+    //   });
+
+    //   const data = await res.json();
+    //   return data.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ No response";
+    // }
+
+    
     async function getGeminiResponse(prompt) {
-      const apiKey = "AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw"; 
+      const apiKey = "AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw";
+    
       const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,9 +120,15 @@
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         })
       });
-
+    
       const data = await res.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ No response";
+      console.log("Gemini response:", data); // 👀 debug
+    
+      return (
+        data.candidates?.[0]?.content?.parts?.[0]?.text ||
+        data.candidates?.[0]?.output_text ||  // fallback
+        "⚠️ No response"
+      );
     }
 
     // --- Add Message to Chat ---
@@ -119,7 +141,7 @@
     }
 
     // --- Send Button ---
-    sendBtn.addEventListener("click", async () => {   // ✅ FIX: async added
+    sendBtn.addEventListener("click", async () => {
       const text = userInput.value.trim();
       if (!text) return;
       addMessage("user", text);
