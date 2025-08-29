@@ -18,7 +18,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 0px;
         }
         
         .container {
@@ -30,32 +30,17 @@
             overflow: hidden;
         }
         
-        .header {
-            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        
-        .header p {
-            font-size: 14px;
-            margin-top: 5px;
-            opacity: 0.9;
-        }
-        
         .main-content {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px); /* adjust 100px for header/footer */
             padding: 20px;
+            box-sizing: border-box;
         }
-        
+
         .chat-container {
-            height: 400px;
-            overflow-y: auto;
+            flex: 1;                /* take remaining height */
+            overflow-y: auto;       /* enable scroll */
             padding: 15px;
             background-color: #f9f9f9;
             border-radius: 10px;
@@ -208,8 +193,8 @@
         }
         
         .typing-dot {
-            width: 8px;
-            height: 8px;
+            width: 4px;
+            height: 4px;
             background-color: #888;
             border-radius: 50%;
             margin: 0 3px;
@@ -242,10 +227,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Shhhh...</h1>
-        </div>
-        
         <div class="main-content">
             <div class="chat-container" id="chatContainer">
                 <div class="message bot-message">
@@ -274,30 +255,35 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const chatContainer = document.getElementById('chatContainer');
-            const userInput = document.getElementById('userInput');
-            const micBtn = document.getElementById('micBtn');
-            const sendBtn = document.getElementById('sendBtn');
-            const clearBtn = document.getElementById('clearBtn');
-            const formatCodeBtn = document.getElementById('formatCodeBtn');
-            const explainCodeBtn = document.getElementById('explainCodeBtn');
-            const status = document.getElementById('status');
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const micBtn = document.getElementById('micBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const formatCodeBtn = document.getElementById('formatCodeBtn');
+        const explainCodeBtn = document.getElementById('explainCodeBtn');
+        const status = document.getElementById('status');
+
+        const savedChat = localStorage.getItem('chatHistory');
+        if (savedChat) {
+            chatContainer.innerHTML = savedChat;
+        }
             
-            // API key embedded in code
-            const apiKey = "AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw";
+    // API key embedded in code
+    const apiKey = "AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw";
+    
+    let isListening = false;
+    let recognition = null;
             
-            let isListening = false;
-            let recognition = null;
-            
-            // Check if the browser supports speech recognition
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;   // keep listening until stopped
-    recognition.lang = 'en-US';
-    recognition.interimResults = true;  // show live text
-    recognition.maxAlternatives = 1;
+    // Check if the browser supports speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;   // keep listening until stopped
+        recognition.lang = 'en-US';
+        recognition.interimResults = true;  // show live text
+        recognition.maxAlternatives = 1;
 
     recognition.onresult = function(event) {
         let interimTranscript = '';
@@ -331,9 +317,30 @@
     };
 }
 
+
+function addMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', sender + '-message');
+
+        const formattedText = formatResponse(text);
+        messageDiv.innerHTML = formattedText;
+
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // Save updated chat to localStorage
+        localStorage.setItem('chatHistory', chatContainer.innerHTML);
+    }
+
+    clearBtn.addEventListener('click', function() {
+        chatContainer.innerHTML = '';
+        addMessage('Chat cleared. How can I help you with your interview?', 'bot');
+        localStorage.removeItem('chatHistory');
+    });
+
             
             // Toggle speech recognition
-          micBtn.addEventListener('click', function() {
+micBtn.addEventListener('click', function() {
     if (!isListening) {
         recognition.start();
         isListening = true;
