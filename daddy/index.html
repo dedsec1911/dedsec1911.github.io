@@ -269,13 +269,7 @@
             
             <div class="controls">
                 <button class="control-btn" id="clearBtn">Clear Chat</button>
-                <button class="control-btn" id="formatCodeBtn">Format Code</button>
-                <button class="control-btn" id="explainCodeBtn">Explain Code</button>
             </div>
-        </div>
-        
-        <div class="footer">
-            <p>Note: This tool is for practice and learning purposes only</p>
         </div>
     </div>
 
@@ -298,53 +292,61 @@
             
             // Check if the browser supports speech recognition
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                recognition.continuous = false;
-                recognition.lang = 'en-US';
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-                
-                recognition.onresult = function(event) {
-                    const transcript = event.results[0][0].transcript;
-                    userInput.value = transcript;
-                    status.textContent = '';
-                };
-                
-                recognition.onerror = function(event) {
-                    status.textContent = 'Error occurred in recognition: ' + event.error;
-                    isListening = false;
-                    micBtn.classList.remove('listening');
-                };
-                
-                recognition.onend = function() {
-                    isListening = false;
-                    micBtn.classList.remove('listening');
-                    status.textContent = '';
-                };
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;   // keep listening until stopped
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;  // show live text
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript + ' ';
             } else {
-                micBtn.disabled = true;
-                micBtn.title = "Speech recognition not supported in this browser";
+                interimTranscript += transcript;
             }
+        }
+        // Display final + interim in real time
+        userInput.value = finalTranscript + interimTranscript;
+    };
+
+    recognition.onerror = function(event) {
+        status.textContent = 'Error: ' + event.error;
+        isListening = false;
+        micBtn.classList.remove('listening');
+    };
+
+    recognition.onend = function() {
+        if (isListening) {
+            // auto-restart if still in listening mode
+            recognition.start();
+        } else {
+            micBtn.classList.remove('listening');
+            status.textContent = '';
+        }
+    };
+}
+
             
             // Toggle speech recognition
-            micBtn.addEventListener('click', function() {
-                if (!isListening) {
-                    try {
-                        recognition.start();
-                        isListening = true;
-                        micBtn.classList.add('listening');
-                        status.textContent = 'Listening...';
-                    } catch (error) {
-                        status.textContent = 'Error starting speech recognition';
-                    }
-                } else {
-                    recognition.stop();
-                    isListening = false;
-                    micBtn.classList.remove('listening');
-                    status.textContent = '';
-                }
-            });
+          micBtn.addEventListener('click', function() {
+    if (!isListening) {
+        recognition.start();
+        isListening = true;
+        micBtn.classList.add('listening');
+        status.textContent = 'Listening...';
+    } else {
+        recognition.stop();
+        isListening = false;
+        micBtn.classList.remove('listening');
+        status.textContent = '';
+    }
+});
+
             
             // Send message
             sendBtn.addEventListener('click', async function() {
