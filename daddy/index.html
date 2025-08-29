@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        
+        .api-key-container {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .api-key-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .main-content {
+            padding: 20px;
+        }
+        
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+        
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .bot-message {
+            background-color: #f1f0f0;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .text-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .mic-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .mic-btn.listening {
+            background: linear-gradient(90deg, #ff5e62 0%, #ff9966 100%);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            padding: 10px 15px;
+            background-color: #4b6cb7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            flex: 1;
+            transition: background-color 0.3s;
+        }
+        
+        .control-btn:hover {
+            background-color: #3a559d;
+        }
+        
+        .status {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+            height: 20px;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 94, 98, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(255, 94, 98, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 94, 98, 0);
+            }
+        }
+        
+        .footer {
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            border-top: 1px solid #eee;
+        }
+        
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            background-color: #f1f0f0;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #888;
+            border-radius: 50%;
+            margin: 0 3px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 10px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Interview Assistant</h1>
+            <p>Your discreet companion for technical interviews</p>
+        </div>
+        
+        <div class="api-key-container">
+            <input type="password" class="api-key-input" id="apiKey" placeholder="Enter your Google Gemini API Key">
+        </div>
+        
+        <div class="main-content">
+            <div class="chat-container" id="chatContainer">
+                <div class="message bot-message">
+                    Hello! I'm your interview assistant. I can help with technical questions, coding problems, and system design questions. Enter your API key and ask me anything.
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <input type="text" class="text-input" id="userInput" placeholder="Type your question here...">
+                <button class="mic-btn" id="micBtn">🎤</button>
+                <button class="send-btn" id="sendBtn">➤</button>
+            </div>
+            
+            <div class="status" id="status"></div>
+            
+            <div class="controls">
+                <button class="control-btn" id="clearBtn">Clear Chat</button>
+                <button class="control-btn" id="formatCodeBtn">Format Code</button>
+                <button class="control-btn" id="explainCodeBtn">Explain Code</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Note: This tool is for practice and learning purposes only</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatContainer = document.getElementById('chatContainer');
+            const userInput = document.getElementById('userInput');
+            const micBtn = document.getElementById('micBtn');
+            const sendBtn = document.getElementById('sendBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const formatCodeBtn = document.getElementById('formatCodeBtn');
+            const explainCodeBtn = document.getElementById('explainCodeBtn');
+            const status = document.getElementById('status');
+            const apiKeyInput = document.getElementById('apiKey');
+            
+            let isListening = false;
+            let recognition = null;
+            
+            // Check if the browser supports speech recognition
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    userInput.value = transcript;
+                    status.textContent = '';
+                };
+                
+                recognition.onerror = function(event) {
+                    status.textContent = 'Error occurred in recognition: ' + event.error;
+                    isListening = false;
+                    micBtn.classList.remove('listening');
+                };
+                
+                recognition.onend = function() {
+                    isListening = false;
+                    micBtn.classList.remove('listening');
+                    status.textContent = '';
+                };
+            } else {
+                micBtn.disabled = true;
+                micBtn.title = "Speech recognition not supported in this browser";
+            }
+            
+            // Toggle speech recognition
+            micBtn.addEventListener('click', function() {
+                const apiKey = apiKeyInput.value.trim();
+                if (!apiKey) {
+                    status.textContent = 'Please enter your Gemini API key first';
+                    return;
+                }
+                
+                if (!isListening) {
+                    try {
+                        recognition.start();
+                        isListening = true;
+                        micBtn.classList.add('listening');
+                        status.textContent = 'Listening...';
+                    } catch (error) {
+                        status.textContent = 'Error starting speech recognition';
+                    }
+                } else {
+                    recognition.stop();
+                    isListening = false;
+                    micBtn.classList.remove('listening');
+                    status.textContent = '';
+                }
+            });
+            
+            // Send message
+            sendBtn.addEventListener('click', async function() {
+                await sendMessage();
+            });
+            
+            userInput.addEventListener('keypress', async function(e) {
+                if (e.key === 'Enter') {
+                    await sendMessage();
+                }
+            });
+            
+            async function sendMessage() {
+                const message = userInput.value.trim();
+                const apiKey = apiKeyInput.value.trim();
+                
+                if (!message) return;
+                if (!apiKey) {
+                    status.textContent = 'Please enter your Gemini API key first';
+                    return;
+                }
+                
+                // Add user message to chat
+                addMessage(message, 'user');
+                userInput.value = '';
+                status.textContent = 'Thinking...';
+                
+                try {
+                    // Show typing indicator
+                    const typingIndicator = document.createElement('div');
+                    typingIndicator.classList.add('typing-indicator');
+                    typingIndicator.innerHTML = `
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    `;
+                    chatContainer.appendChild(typingIndicator);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    
+                    // Call Gemini API
+                    const response = await callGeminiAPI(apiKey, message);
+                    
+                    // Remove typing indicator
+                    chatContainer.removeChild(typingIndicator);
+                    
+                    // Add bot response to chat
+                    addMessage(response, 'bot');
+                    status.textContent = '';
+                } catch (error) {
+                    console.error('Error:', error);
+                    status.textContent = 'Error: ' + error.message;
+                    addMessage('Sorry, I encountered an error processing your request.', 'bot');
+                    
+                    // Remove typing indicator if it exists
+                    const indicator = document.querySelector('.typing-indicator');
+                    if (indicator) {
+                        chatContainer.removeChild(indicator);
+                    }
+                }
+            }
+            
+            async function callGeminiAPI(apiKey, message) {
+                // Define the context for the AI
+                const context = `
+                    You are an AI assistant helping a senior developer with 6 years of experience in Android development using Kotlin and Java. 
+                    The user is in a technical interview and needs concise, accurate answers.
+                    
+                    Guidelines:
+                    1. If the question is about coding, provide a well-formatted code solution in a code block
+                    2. For architecture or system design questions, provide structured recommendations
+                    3. Keep answers professional but concise
+                    4. Focus on best practices and modern approaches
+                    5. If the question is unclear, ask for clarification
+                    
+                    Current question: ${message}
+                `;
+                
+                try {
+                    // Using the correct Gemini 2.0 Flash model endpoint as shown in Postman
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: context
+                                }]
+                            }],
+                            generationConfig: {
+                                temperature: 0.7,
+                                topK: 40,
+                                topP: 0.95,
+                                maxOutputTokens: 1024,
+                            }
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || 'Failed to fetch response from Gemini API');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+                        throw new Error('Invalid response format from Gemini API');
+                    }
+                    
+                    return data.candidates[0].content.parts[0].text;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    throw new Error('Unable to connect to the AI service. Please check your API key and try again.');
+                }
+            }
+            
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(sender + '-message');
+                
+                // Format code blocks if present
+                const formattedText = formatResponse(text);
+                messageDiv.innerHTML = formattedText;
+                
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            function formatResponse(text) {
+                // Convert line breaks to HTML
+                let formattedText = text.replace(/\n/g, '<br>');
+                
+                // Format code blocks (if any)
+                formattedText = formattedText.replace(/```(\w+)?\s([\s\S]*?)```/g, function(match, lang, code) {
+                    return `<pre class="code-block">${escapeHtml(code.trim())}</pre>`;
+                });
+                
+                return formattedText;
+            }
+            
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+            
+            // Clear chat
+            clearBtn.addEventListener('click', function() {
+                chatContainer.innerHTML = '';
+                addMessage('Chat cleared. How can I help you with your interview?', 'bot');
+            });
+            
+            // Format code button
+            formatCodeBtn.addEventListener('click', function() {
+                userInput.value = 'Can you format this code and explain it?';
+                userInput.focus();
+            });
+            
+            // Explain code button
+            explainCodeBtn.addEventListener('click', function() {
+                userInput.value = 'Explain this code in detail:';
+                userInput.focus();
+            });
+        });
+    </script>
+</body>
+</html>
