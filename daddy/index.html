@@ -131,6 +131,31 @@
       );
     }
 
+    async function sendMessage(message) {
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: message }],
+              },
+            ],
+          }),
+        }
+      );
+    
+      const data = await response.json();
+      // Extract response text
+      const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ No response";
+      return botReply;
+    }
+
+
     // --- Add Message to Chat ---
     function addMessage(sender, text) {
       const div = document.createElement("div");
@@ -146,8 +171,8 @@
       if (!text) return;
       addMessage("user", text);
       userInput.value = "";
-      const response = await getGeminiResponse(text);
-      addMessage("bot", response);
+      const botReply = await sendMessage(userMessage);
+      addMessage((prev) => [...prev, { role: "bot", text: botReply }]);
     });
 
     // --- Clear Chat ---
