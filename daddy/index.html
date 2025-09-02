@@ -30,6 +30,37 @@
             overflow: hidden;
         }
         
+        .profile-selector {
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .profile-selector select, .profile-selector input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .profile-selector label {
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .profile-info {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
         .main-content {
             display: flex;
             flex-direction: column;
@@ -215,6 +246,11 @@
                 border-radius: 10px;
             }
             
+            .profile-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
             .message {
                 max-width: 90%;
             }
@@ -227,10 +263,48 @@
 </head>
 <body>
     <div class="container">
+        <div class="profile-selector">
+            <div>
+                <label for="experienceLevel">Experience Level:</label>
+                <select id="experienceLevel">
+                    <option value="student">Student / Intern</option>
+                    <option value="junior">Junior (0-2 years)</option>
+                    <option value="mid" selected>Mid-Level (3-5 years)</option>
+                    <option value="senior">Senior (6-10 years)</option>
+                    <option value="principal">Principal/Lead (10+ years)</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="domain">Domain:</label>
+                <select id="domain">
+                    <option value="frontend">Frontend Development</option>
+                    <option value="backend">Backend Development</option>
+                    <option value="mobile" selected>Mobile Development</option>
+                    <option value="fullstack">Full Stack Development</option>
+                    <option value="devops">DevOps/Cloud</option>
+                    <option value="data">Data Science/AI</option>
+                    <option value="qa">QA/Testing</option>
+                    <option value="ux">UX/UI Design</option>
+                    <option value="product">Product Management</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="specificTech">Specific Technology:</label>
+                <input type="text" id="specificTech" placeholder="e.g., React, Android, Node.js">
+            </div>
+            
+            <div class="profile-info" id="profileInfo">
+                Profile: Mid-Level Mobile Developer
+            </div>
+        </div>
+        
         <div class="main-content">
             <div class="chat-container" id="chatContainer">
                 <div class="message bot-message">
-                    Hello! I'm your assistant. I can help with technical questions, coding problems, and system design questions. Ask me anything.
+                    Hello Daddy! I'm your assistant. I can help with technical questions, coding problems, and system design questions. Ask me anything.
                 </div>
             </div>
             
@@ -261,14 +335,27 @@
         const micBtn = document.getElementById('micBtn');
         const sendBtn = document.getElementById('sendBtn');
         const clearBtn = document.getElementById('clearBtn');
-        const formatCodeBtn = document.getElementById('formatCodeBtn');
-        const explainCodeBtn = document.getElementById('explainCodeBtn');
+        const experienceLevel = document.getElementById('experienceLevel');
+        const domain = document.getElementById('domain');
+        const specificTech = document.getElementById('specificTech');
+        const profileInfo = document.getElementById('profileInfo');
         const status = document.getElementById('status');
 
         const savedChat = localStorage.getItem('chatHistory');
         if (savedChat) {
             chatContainer.innerHTML = savedChat;
         }
+        
+        // Load saved profile settings if available
+        const savedExperience = localStorage.getItem('userExperience');
+        const savedDomain = localStorage.getItem('userDomain');
+        const savedTech = localStorage.getItem('userTech');
+        
+        if (savedExperience) experienceLevel.value = savedExperience;
+        if (savedDomain) domain.value = savedDomain;
+        if (savedTech) specificTech.value = savedTech;
+        
+        updateProfileInfo();
             
     // API key embedded in code
     const apiKey = "AIzaSyBsxx6zFz7l-UJVTHLpMG3T-vOCLC04wgw";
@@ -317,6 +404,24 @@
     };
 }
 
+// Update profile info based on selections
+function updateProfileInfo() {
+    const expText = experienceLevel.options[experienceLevel.selectedIndex].text;
+    const domainText = domain.options[domain.selectedIndex].text;
+    const techText = specificTech.value ? ` (${specificTech.value})` : '';
+    
+    profileInfo.textContent = `Profile: ${expText} ${domainText}${techText}`;
+    
+    // Save to localStorage
+    localStorage.setItem('userExperience', experienceLevel.value);
+    localStorage.setItem('userDomain', domain.value);
+    localStorage.setItem('userTech', specificTech.value);
+}
+
+// Add event listeners for profile changes
+experienceLevel.addEventListener('change', updateProfileInfo);
+domain.addEventListener('change', updateProfileInfo);
+specificTech.addEventListener('input', updateProfileInfo);
 
 function addMessage(text, sender) {
         const messageDiv = document.createElement('div');
@@ -411,17 +516,27 @@ micBtn.addEventListener('click', function() {
             }
             
             async function callGeminiAPI(apiKey, message) {
-                // Define the context for the AI
+                // Get user profile information
+                const experience = experienceLevel.options[experienceLevel.selectedIndex].text;
+                const domainText = domain.options[domain.selectedIndex].text;
+                const tech = specificTech.value;
+                
+                // Define the context for the AI based on user profile
                 const context = `
-                    You are an AI assistant helping a senior developer with 6 years of experience in Android development using Kotlin and Java. 
-                    The user is in a technical interview and needs concise, accurate answers.
+                    You are an AI assistant helping a ${experience} ${domainText} ${tech ? 'with expertise in ' + tech : ''}. 
+                    The user may be in a technical interview or working on a project and needs accurate, appropriate answers.
                     
                     Guidelines:
-                    1. If the question is about coding, provide a well-formatted code solution in a code block
-                    2. For architecture or system design questions, provide structured recommendations
-                    3. Keep answers professional but concise
-                    4. Focus on best practices and modern approaches
-                    5. If the question is unclear, ask for clarification
+                    1. Tailor your response complexity to the user's experience level
+                    2. If the question is about coding, provide a well-formatted code solution in a code block
+                    3. For architecture or system design questions, provide structured recommendations
+                    4. Keep answers professional but appropriate for the user's level
+                    5. Focus on best practices and modern approaches
+                    6. If the question is unclear, ask for clarification
+                    
+                    Experience Level: ${experience}
+                    Domain: ${domainText}
+                    ${tech ? 'Technology: ' + tech : ''}
                     
                     Current question: ${message}
                 `;
@@ -477,6 +592,9 @@ micBtn.addEventListener('click', function() {
                 
                 chatContainer.appendChild(messageDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Save updated chat to localStorage
+                localStorage.setItem('chatHistory', chatContainer.innerHTML);
             }
             
             function formatResponse(text) {
@@ -504,18 +622,7 @@ micBtn.addEventListener('click', function() {
             clearBtn.addEventListener('click', function() {
                 chatContainer.innerHTML = '';
                 addMessage('Chat cleared. How can I help you with your interview?', 'bot');
-            });
-            
-            // Format code button
-            formatCodeBtn.addEventListener('click', function() {
-                userInput.value = 'Can you format this code and explain it?';
-                userInput.focus();
-            });
-            
-            // Explain code button
-            explainCodeBtn.addEventListener('click', function() {
-                userInput.value = 'Explain this code in detail:';
-                userInput.focus();
+                localStorage.removeItem('chatHistory');
             });
         });
     </script>
