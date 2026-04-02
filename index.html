@@ -1,62 +1,949 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Profile Card Demo</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HARSHUL.EXE — Senior Software Engineer</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--g:#00ff88;--b:#00ccff;--o:#ff6b35;--y:#ffd700;--p:#cc44ff;
+--dark:#07070f;--dark2:#0e0e1a;--dark3:#141422;--panel:#181828;
+--pb:#22223a;--text:#dde0ff;--muted:#6677aa;
+}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;cursor:none}
 
-  <!-- Component styles -->
-  <link rel="stylesheet" href="ProfileCard.css" />
+/* CUSTOM CURSOR */
+#cursor{position:fixed;width:16px;height:16px;border:2px solid var(--g);pointer-events:none;z-index:9999;transition:transform .1s;image-rendering:pixelated}
+#cursor.click{transform:scale(1.8);border-color:var(--y)}
+#cursor-trail{position:fixed;width:6px;height:6px;background:var(--g);opacity:.4;pointer-events:none;z-index:9998;transition:all .08s}
 
-  <!-- Dark background for contrast (optional) -->
-  <style>
-    body{
-      margin:0;
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      background:#0e152e;
-      font-family: system-ui, sans-serif;
-    }
-  </style>
+/* SCANLINES */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.07) 3px,rgba(0,0,0,.07) 4px);pointer-events:none;z-index:9990}
+
+/* CANVAS BG */
+#bg-canvas{position:fixed;inset:0;z-index:0}
+
+/* BOOT SCREEN */
+#boot{position:fixed;inset:0;background:#000;z-index:9997;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#boot-text{font-family:'Press Start 2P',monospace;font-size:13px;color:var(--g);line-height:2.2;text-align:left;min-height:300px;max-width:600px;padding:0 20px}
+#boot-bar-wrap{width:300px}
+#boot-bar-label{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);margin-bottom:8px}
+#boot-bar{height:12px;background:#111;border:1px solid var(--g);overflow:hidden}
+#boot-fill{height:100%;width:0;background:var(--g);transition:width .4s}
+#boot-skip{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted);cursor:pointer;margin-top:12px}
+#boot-skip:hover{color:var(--g)}
+
+/* MAIN */
+#main{position:relative;z-index:1;opacity:0;transition:opacity .8s}
+#main.show{opacity:1}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 80px}
+
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(7,7,15,.9);border-bottom:1px solid var(--pb);backdrop-filter:blur(8px);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px}
+.nav-logo{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--g)}
+.nav-links{display:flex;gap:4px}
+.nav-btn{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted);background:none;border:1px solid transparent;padding:6px 10px;cursor:pointer;transition:all .2s}
+.nav-btn:hover,.nav-btn.active{color:var(--g);border-color:var(--g);background:rgba(0,255,136,.05)}
+#sound-btn{font-size:14px;background:none;border:1px solid var(--pb);padding:6px 10px;cursor:pointer;color:var(--muted);font-family:monospace}
+#sound-btn:hover{border-color:var(--g);color:var(--g)}
+
+/* SECTIONS */
+.section{padding-top:80px;opacity:0;transform:translateY(30px);transition:opacity .7s,transform .7s}
+.section.visible{opacity:1;transform:none}
+
+/* HEADER */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start;padding:28px;background:var(--panel);border:1px solid var(--pb);border-top:3px solid var(--g);position:relative;overflow:hidden;margin-bottom:20px}
+.hero-glow{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--g),transparent);animation:scanmove 4s linear infinite}
+@keyframes scanmove{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+.avatar-zone{position:relative;width:110px}
+.avatar-box{width:110px;height:110px;border:2px solid var(--g);background:var(--dark3);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.avatar-box::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,255,136,.12));pointer-events:none}
+.av-text{font-family:'Press Start 2P',monospace;font-size:32px;color:var(--g);text-shadow:0 0 30px var(--g);animation:avatarPulse 3s ease-in-out infinite}
+@keyframes avatarPulse{0%,100%{text-shadow:0 0 20px var(--g)}50%{text-shadow:0 0 50px var(--g),0 0 80px rgba(0,255,136,.5)}}
+.lvl{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:var(--o);color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:4px 9px;white-space:nowrap;z-index:2}
+
+.hero-right{display:flex;flex-direction:column;gap:10px}
+.tag{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--g);letter-spacing:1px}
+.hero-name{font-family:'Press Start 2P',monospace;font-size:20px;color:#fff;line-height:1.5;text-shadow:2px 2px 0 var(--o)}
+.hero-role{display:inline-flex;align-items:center;gap:8px;background:var(--dark3);border:1px solid var(--b);color:var(--b);font-size:13px;font-weight:700;padding:4px 14px;letter-spacing:2px;text-transform:uppercase}
+.role-dot{width:6px;height:6px;background:var(--b);animation:blink 1s step-end infinite}
+
+.bars{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.bar-row{display:flex;align-items:center;gap:8px}
+.bar-lbl{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted);width:24px}
+.bar-track{flex:1;height:10px;background:var(--dark3);border:1px solid var(--pb);overflow:hidden;position:relative}
+.bar-fill{height:100%;width:0;transition:width 1.8s cubic-bezier(.25,1,.5,1)}
+.bar-val{font-family:'Press Start 2P',monospace;font-size:7px;width:48px;text-align:right}
+.hp-fill{background:linear-gradient(90deg,#00ff88,#00cc55);box-shadow:0 0 8px rgba(0,255,136,.4)}
+.mp-fill{background:linear-gradient(90deg,#00ccff,#0099cc);box-shadow:0 0 8px rgba(0,204,255,.4)}
+.xp-fill{background:linear-gradient(90deg,#ff6b35,#cc4400)}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat{background:var(--panel);border:1px solid var(--pb);padding:14px 8px;text-align:center;position:relative;cursor:pointer;transition:all .2s;overflow:hidden}
+.stat::after{content:'';position:absolute;inset:0;background:var(--g);opacity:0;transition:opacity .3s}
+.stat:hover::after{opacity:.04}
+.stat:hover{border-color:var(--g);transform:translateY(-3px)}
+.stat:active{transform:scale(.96)}
+.stat-key{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--muted);margin-bottom:6px}
+.stat-num{font-family:'Press Start 2P',monospace;font-size:24px;color:var(--y);display:block;margin-bottom:4px;transition:all .3s}
+.stat:hover .stat-num{color:#fff;text-shadow:0 0 20px var(--y)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+
+/* PANEL */
+.panel{background:var(--panel);border:1px solid var(--pb);margin-bottom:20px;overflow:hidden}
+.ph{padding:10px 18px;background:var(--dark3);border-bottom:1px solid var(--pb);display:flex;align-items:center;gap:10px}
+.ph-dot{width:8px;height:8px;display:inline-block}
+.ph-title{font-family:'Press Start 2P',monospace;font-size:9px;letter-spacing:1px}
+.pb2{padding:18px}
+
+/* SKILLS */
+.skills-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.skill-item{display:flex;flex-direction:column;gap:5px}
+.skill-top{display:flex;justify-content:space-between;align-items:center}
+.skill-name{font-size:14px;font-weight:700;color:var(--text)}
+.skill-pct{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--y)}
+.sk-track{height:9px;background:var(--dark3);border:1px solid var(--pb);overflow:hidden;cursor:pointer;position:relative}
+.sk-track:hover .sk-fill{filter:brightness(1.3)}
+.sk-fill{height:100%;width:0;transition:width 1.6s cubic-bezier(.25,1,.5,1);position:relative}
+.sk-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:rgba(255,255,255,.5)}
+
+/* PROJECTS */
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.proj{background:var(--dark3);border:1px solid var(--pb);padding:14px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.proj::before{content:'';position:absolute;top:0;left:0;width:3px;height:0;background:var(--c,var(--g));transition:height .3s}
+.proj:hover::before{height:100%}
+.proj:hover{border-color:rgba(255,255,255,.15);transform:translateY(-3px);background:var(--dark2)}
+.proj-hd{display:flex;justify-content:space-between;align-items:start;margin-bottom:6px}
+.proj-name{font-weight:700;font-size:15px;color:#fff}
+.proj-badge{font-family:'Press Start 2P',monospace;font-size:6px;padding:3px 7px;border:1px solid;color:var(--g);border-color:var(--g)}
+.proj-type{font-size:12px;color:var(--muted);margin-bottom:8px}
+.proj-stars{font-size:12px;color:var(--y)}
+.proj-expand{display:none;margin-top:10px;font-size:12px;color:var(--muted);border-top:1px solid var(--pb);padding-top:10px;line-height:1.6}
+.proj.open .proj-expand{display:block}
+.proj.open{border-color:var(--b)}
+
+/* SPECIALIZATION */
+.spec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.spec{padding:14px;background:var(--dark3);border:1px solid var(--pb);display:flex;gap:12px;transition:all .2s;cursor:pointer}
+.spec:hover{border-color:var(--p);background:var(--dark2)}
+.spec-icon{width:42px;height:42px;min-width:42px;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid var(--pb);background:var(--panel)}
+.spec-text strong{font-size:12px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;color:var(--y)}
+.spec-text p{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ach{background:var(--dark3);border:1px solid var(--pb);padding:14px 10px;text-align:center;cursor:pointer;transition:all .25s;position:relative}
+.ach.locked{opacity:.35;filter:grayscale(1)}
+.ach:not(.locked):hover{border-color:var(--y);transform:scale(1.05)}
+.ach-icon{font-size:26px;display:block;margin-bottom:6px}
+.ach-name{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--text);line-height:1.6}
+.ach-desc{font-size:11px;color:var(--muted);margin-top:4px;display:none}
+.ach:hover .ach-desc{display:block}
+.ach-rarity{font-family:'Press Start 2P',monospace;font-size:6px;margin-top:6px}
+.ach-rarity.legendary{color:var(--o)}
+.ach-rarity.epic{color:var(--p)}
+.ach-rarity.rare{color:var(--b)}
+.ach-rarity.common{color:var(--muted)}
+
+/* QUEST LOG */
+.quests{display:flex;flex-direction:column;gap:8px}
+.quest{padding:12px 16px;background:var(--dark3);border-left:3px solid var(--g);display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;transition:all .2s}
+.quest:hover{background:var(--dark2)}
+.quest-info{flex:1}
+.quest-title{font-weight:700;font-size:14px;color:#fff;margin-bottom:2px}
+.quest-sub{font-size:12px;color:var(--muted)}
+.q-status{font-family:'Press Start 2P',monospace;font-size:7px;padding:4px 9px;border:1px solid;white-space:nowrap}
+.done{color:var(--g);border-color:var(--g);background:rgba(0,255,136,.05)}
+.going{color:var(--y);border-color:var(--y);background:rgba(255,215,0,.05)}
+.locked-q{color:var(--muted);border-color:var(--muted)}
+
+/* CONTACT */
+.contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.contact-card{background:var(--dark3);border:1px solid var(--pb);padding:18px;text-align:center;cursor:pointer;transition:all .25s;text-decoration:none;color:inherit;display:block}
+.contact-card:hover{transform:translateY(-4px)}
+.cc-icon{font-size:28px;display:block;margin-bottom:10px}
+.cc-label{font-family:'Press Start 2P',monospace;font-size:8px;display:block;margin-bottom:6px}
+.cc-val{font-size:13px;color:var(--muted)}
+
+/* TERMINAL */
+#terminal{background:#000;border:1px solid var(--g);padding:16px;font-family:'VT323',monospace;font-size:18px;color:var(--g);min-height:200px;max-height:320px;overflow-y:auto;line-height:1.6}
+.term-line{margin-bottom:2px}
+.term-line.cmd{color:var(--y)}
+.term-line.err{color:#ff4444}
+.term-input-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.term-prompt{color:var(--g);font-family:'VT323',monospace;font-size:18px;white-space:nowrap}
+#term-input{flex:1;background:transparent;border:none;outline:none;color:var(--g);font-family:'VT323',monospace;font-size:18px;caret-color:var(--g)}
+
+/* MINI GAME */
+#game-panel .pb2{padding:12px}
+#game-canvas{display:block;width:100%;border:1px solid var(--pb);background:var(--dark3);image-rendering:pixelated;cursor:crosshair}
+.game-hud{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);margin-top:8px}
+.game-hud span{color:var(--g)}
+#start-game{font-family:'Press Start 2P',monospace;font-size:9px;background:none;border:1px solid var(--g);color:var(--g);padding:8px 16px;cursor:pointer;transition:all .2s;margin-top:8px}
+#start-game:hover{background:rgba(0,255,136,.1)}
+
+/* TOOLTIP */
+#tooltip{position:fixed;background:var(--panel);border:1px solid var(--g);padding:8px 12px;font-family:'Press Start 2P',monospace;font-size:8px;color:var(--g);z-index:600;pointer-events:none;opacity:0;transition:opacity .2s;max-width:200px;line-height:1.8}
+
+/* COMBO */
+#combo{position:fixed;top:80px;right:20px;font-family:'Press Start 2P',monospace;font-size:14px;color:var(--y);z-index:600;text-shadow:0 0 20px var(--y);opacity:0;transition:opacity .3s;pointer-events:none}
+
+/* FOOTER */
+footer{text-align:center;padding:30px;font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);line-height:2.5;border-top:1px solid var(--pb);margin-top:20px}
+
+/* BLINK */
+.blink{animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* SCROLL INDICATOR */
+#scroll-ind{position:fixed;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:400}
+.scroll-dot{width:8px;height:8px;background:var(--pb);border:1px solid var(--pb);cursor:pointer;transition:all .2s}
+.scroll-dot.active{background:var(--g);border-color:var(--g)}
+
+/* FLOATING PARTICLES */
+.particle{position:fixed;pointer-events:none;z-index:5;font-family:'Press Start 2P',monospace;font-size:10px;color:var(--g);animation:floatUp .8s ease-out forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+.hero{grid-template-columns:1fr;text-align:center}
+.avatar-zone{margin:0 auto}
+.stats-row{grid-template-columns:repeat(2,1fr)}
+.skills-grid,.spec-grid{grid-template-columns:1fr}
+.proj-grid{grid-template-columns:1fr 1fr}
+.ach-grid{grid-template-columns:repeat(3,1fr)}
+.contact-grid{grid-template-columns:1fr}
+.nav-links{display:none}
+.hero-name{font-size:14px}
+}
+</style>
 </head>
 <body>
-  <div id="root"></div>
 
-  <!-- React + ReactDOM (UMD) -->
-  <script
-    crossorigin
-    src="https://unpkg.com/react@18/umd/react.production.min.js">
-  </script>
-  <script
-    crossorigin
-    src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js">
-  </script>
+<div id="cursor"></div>
+<div id="cursor-trail"></div>
+<div id="tooltip"></div>
+<div id="combo"></div>
+<canvas id="bg-canvas"></canvas>
 
-  <!-- Babel‑standalone so the browser can read JSX directly -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- BOOT SCREEN -->
+<div id="boot">
+  <div id="boot-text"></div>
+  <div id="boot-bar-wrap">
+    <div id="boot-bar-label">LOADING PLAYER DATA...</div>
+    <div id="boot-bar"><div id="boot-fill"></div></div>
+  </div>
+  <div id="boot-skip" onclick="skipBoot()">[ PRESS ENTER TO SKIP ]</div>
+</div>
 
-  <!-- Your component (compiled by Babel in‑browser) -->
-  <script type="text/babel" src="ProfileCard.js"></script>
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-logo">HARSHUL.EXE</div>
+  <div class="nav-links">
+    <button class="nav-btn active" onclick="scrollTo('hero-sec')">PROFILE</button>
+    <button class="nav-btn" onclick="scrollTo('skills-sec')">SKILLS</button>
+    <button class="nav-btn" onclick="scrollTo('projects-sec')">QUESTS</button>
+    <button class="nav-btn" onclick="scrollTo('spec-sec')">CLASS</button>
+    <button class="nav-btn" onclick="scrollTo('ach-sec')">BADGES</button>
+    <button class="nav-btn" onclick="scrollTo('game-sec')">MINI GAME</button>
+    <button class="nav-btn" onclick="scrollTo('term-sec')">TERMINAL</button>
+  </div>
+  <button id="sound-btn" onclick="toggleSound()" title="Toggle Sound">🔊</button>
+</nav>
 
-  <!-- Tiny “app” that renders one card -->
-  <script type="text/babel">
-    const root = ReactDOM.createRoot(document.getElementById("root"));
+<!-- SCROLL DOTS -->
+<div id="scroll-ind">
+  <div class="scroll-dot active" onclick="scrollTo('hero-sec')" title="Profile"></div>
+  <div class="scroll-dot" onclick="scrollTo('skills-sec')" title="Skills"></div>
+  <div class="scroll-dot" onclick="scrollTo('projects-sec')" title="Projects"></div>
+  <div class="scroll-dot" onclick="scrollTo('spec-sec')" title="Class"></div>
+  <div class="scroll-dot" onclick="scrollTo('ach-sec')" title="Achievements"></div>
+  <div class="scroll-dot" onclick="scrollTo('game-sec')" title="Game"></div>
+  <div class="scroll-dot" onclick="scrollTo('term-sec')" title="Terminal"></div>
+</div>
 
-    root.render(
-      <ProfileCard
-        name="Javi A. Torres"
-        title="Software Engineer"
-        handle="javicodes"
-        status="Online"
-        contactText="Contact Me"
-        avatarUrl="avatar.jpg"          {/* or any URL */}
-        showUserInfo={true}
-        enableTilt={true}
-        onContactClick={() => alert("Contact clicked")}
-      />
-    );
-  </script>
+<div id="main">
+<div class="wrap">
+
+<!-- HERO -->
+<div class="section" id="hero-sec">
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <div class="avatar-zone">
+      <div class="avatar-box" id="avatar-box">
+        <div class="av-text">HV</div>
+      </div>
+      <div class="lvl">LVL 8</div>
+    </div>
+    <div class="hero-right">
+      <div class="tag">▶ PLAYER PROFILE LOADED — CLASS: ANDROID ARCHITECT</div>
+      <div class="hero-name" id="typed-name"></div>
+      <div class="hero-role"><div class="role-dot"></div>Senior Software Engineer</div>
+      <div class="bars">
+        <div class="bar-row">
+          <div class="bar-lbl">HP</div>
+          <div class="bar-track"><div class="bar-fill hp-fill" id="hp-bar"></div></div>
+          <div class="bar-val" style="color:var(--g)">880/1000</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-lbl">MP</div>
+          <div class="bar-track"><div class="bar-fill mp-fill" id="mp-bar"></div></div>
+          <div class="bar-val" style="color:var(--b)">740/800</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-lbl">XP</div>
+          <div class="bar-track"><div class="bar-fill xp-fill" id="xp-bar"></div></div>
+          <div class="bar-val" style="color:var(--o)">7500/10k</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat" data-tip="Android development mastery score" onclick="popStat(this)">
+      <div class="stat-key">STR</div>
+      <span class="stat-num" id="sn1">0</span>
+      <div class="stat-label">Android</div>
+    </div>
+    <div class="stat" data-tip="Kotlin language proficiency" onclick="popStat(this)">
+      <div class="stat-key">INT</div>
+      <span class="stat-num" id="sn2">0</span>
+      <div class="stat-label">Kotlin</div>
+    </div>
+    <div class="stat" data-tip="Kotlin Multiplatform expertise" onclick="popStat(this)">
+      <div class="stat-key">DEX</div>
+      <span class="stat-num" id="sn3">0</span>
+      <div class="stat-label">KMP</div>
+    </div>
+    <div class="stat" data-tip="Debugging & profiling skill" onclick="popStat(this)">
+      <div class="stat-key">AGI</div>
+      <span class="stat-num" id="sn4">0</span>
+      <div class="stat-label">Debug</div>
+    </div>
+  </div>
+</div>
+
+<!-- SKILLS -->
+<div class="section" id="skills-sec">
+  <div class="panel">
+    <div class="ph"><span class="ph-dot" style="background:var(--g)"></span><span class="ph-title" style="color:var(--g)">▶ SKILL TREE</span></div>
+    <div class="pb2">
+      <div class="skills-grid" id="skills-grid">
+        <div class="skill-item" data-tip="Primary language — MVVM, Coroutines, Flow">
+          <div class="skill-top"><span class="skill-name">Kotlin</span><span class="skill-pct">96%</span></div>
+          <div class="sk-track"><div class="sk-fill" style="background:linear-gradient(90deg,#00ff88,#00cc55)" data-w="96"></div></div>
+        </div>
+        <div class="skill-item" data-tip="Share business logic across Android & iOS">
+          <div class="skill-top"><span class="skill-name">KMP / Multiplatform</span><span class="skill-pct">92%</span></div>
+          <div class="sk-track"><div class="sk-fill" style="background:linear-gradient(90deg,#00ccff,#0088cc)" data-w="92"></div></div>
+        </div>
+        <div class="skill-item" data-tip="Legacy codebases, Retrofit, Dagger">
+          <div class="skill-top"><span class="skill-name">Java</span><span class="skill-pct">90%</span></div>
+          <div class="sk-track"><div class="sk-fill" style="background:linear-gradient(90deg,#ff6b35,#cc3300)" data-w="90"></div></div>
+        </div>
+        <div class="skill-item" data-tip="Custom player, DRM, adaptive streaming">
+          <div class="skill-top"><span class="skill-name">ExoPlayer / Media3</span><span class="skill-pct">94%</span></div>
+          <div class="sk-track"><div class="sk-fill" style="background:linear-gradient(90deg,#ffd700,#cc9900)" data-w="94"></div></div>
+        </div>
+        <div class="skill-item" data-tip="MVVM, Clean Arch, Jetpack, Compose">
+          <div class="skill-top"><span class="skill-name">Android Architecture</span><span class="skill-pct">92%</span></div>
+          <div class="sk-track"><div class="sk-fill" style="background:linear-gradient(90deg,#cc44ff,#8800cc)" data-w="92"></div></div>
+        </div>
+        <div class="skill-item" data-tip="Memory leaks, ANR, CPU & frame profiling">
+          <div class="skill-top"><span class="skill-name">Debugging & Profiling</span><span class="skill-pct">95%</span></div>
+          <div class="sk-track"><div class="sk-fill" style="background:linear-gradient(90deg,#ff44aa,#cc0077)" data-w="95"></div></div>
+        </div>
+        <div class="skill-item" data-tip="Live streams, DRM, HLS/DASH playback">
+          <div class="skill-top"><span class="skill-name">OTT / Streaming</span><span class="skill-pct">95%</span></div>
+          <div class="sk-track"><div class="sk-fill" style="background:linear-gradient(90deg,#00ff88,#00aaff)" data-w="95"></div></div>
+        </div>
+        <div class="skill-item" data-tip="Jetpack Compose & modern UI patterns">
+          <div class="skill-top"><span class="skill-name">Jetpack Compose</span><span class="skill-pct">86%</span></div>
+          <div class="sk-track"><div class="sk-fill" style="background:linear-gradient(90deg,#44ddff,#0066ff)" data-w="86"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECTS -->
+<div class="section" id="projects-sec">
+  <div class="panel">
+    <div class="ph"><span class="ph-dot" style="background:var(--b)"></span><span class="ph-title" style="color:var(--b)">▶ PROJECT QUEST LOG — 9 COMPLETED</span></div>
+    <div class="pb2">
+      <div class="proj-grid">
+        <div class="proj" style="--c:#00ff88" onclick="toggleProj(this)">
+          <div class="proj-hd"><div class="proj-name">Jio Cinema</div><div class="proj-badge">SHIPPED</div></div>
+          <div class="proj-type">⬡ OTT Platform · Viacom18</div>
+          <div class="proj-stars">★★★★★</div>
+          <div class="proj-expand">India's largest OTT platform. Worked on Android client, ExoPlayer integration, live streaming, DRM, Chromecast support & performance optimization at massive scale.</div>
+        </div>
+        <div class="proj" style="--c:#00ccff" onclick="toggleProj(this)">
+          <div class="proj-hd"><div class="proj-name">Sony LIV</div><div class="proj-badge">SHIPPED</div></div>
+          <div class="proj-type">⬡ OTT Platform · Sony</div>
+          <div class="proj-stars">★★★★★</div>
+          <div class="proj-expand">Premium streaming platform. Built adaptive playback, subscription flows, offline downloads & content personalization modules for Android.</div>
+        </div>
+        <div class="proj" style="--c:#ff6b35" onclick="toggleProj(this)">
+          <div class="proj-hd"><div class="proj-name">Voot</div><div class="proj-badge">SHIPPED</div></div>
+          <div class="proj-type">⬡ Streaming · Viacom18</div>
+          <div class="proj-stars">★★★★☆</div>
+          <div class="proj-expand">Free ad-supported streaming. Implemented ad insertion, SSAI/CSAI with ExoPlayer, video resume logic & performance improvements.</div>
+        </div>
+        <div class="proj" style="--c:#ffd700" onclick="toggleProj(this)">
+          <div class="proj-hd"><div class="proj-name">Voot Kids</div><div class="proj-badge">SHIPPED</div></div>
+          <div class="proj-type">⬡ Kids OTT · Viacom18</div>
+          <div class="proj-stars">★★★★☆</div>
+          <div class="proj-expand">Child-safe streaming platform. Built parental controls, supervised profiles, age-gated content & simplified UX for young audiences on Android.</div>
+        </div>
+        <div class="proj" style="--c:#cc44ff" onclick="toggleProj(this)">
+          <div class="proj-hd"><div class="proj-name">meWATCH</div><div class="proj-badge">SHIPPED</div></div>
+          <div class="proj-type">⬡ SEA Streaming · Mediacorp</div>
+          <div class="proj-stars">★★★★★</div>
+          <div class="proj-expand">Singapore-based streaming platform by Mediacorp. Led Android development including live TV, news streaming, catch-up TV & regional content delivery.</div>
+        </div>
+        <div class="proj" style="--c:#ff44aa" onclick="toggleProj(this)">
+          <div class="proj-hd"><div class="proj-name">Eros Now</div><div class="proj-badge">SHIPPED</div></div>
+          <div class="proj-type">⬡ Bollywood OTT · Eros STX</div>
+          <div class="proj-stars">★★★★☆</div>
+          <div class="proj-expand">Global South Asian entertainment platform. Implemented multi-language support, regional content discovery, watchlist & download features.</div>
+        </div>
+        <div class="proj" style="--c:#00ff88" onclick="toggleProj(this)">
+          <div class="proj-hd"><div class="proj-name">Eros Universe</div><div class="proj-badge">SHIPPED</div></div>
+          <div class="proj-type">⬡ Extended OTT · Eros</div>
+          <div class="proj-stars">★★★★☆</div>
+          <div class="proj-expand">Extended Eros ecosystem platform with social features, creator content and expanded catalog delivery on Android.</div>
+        </div>
+        <div class="proj" style="--c:#00ccff" onclick="toggleProj(this)">
+          <div class="proj-hd"><div class="proj-name">CNA</div><div class="proj-badge">SHIPPED</div></div>
+          <div class="proj-type">⬡ News App · Mediacorp</div>
+          <div class="proj-stars">★★★★★</div>
+          <div class="proj-expand">Channel NewsAsia — Singapore's leading English news channel. Built live news streams, breaking alerts, video-on-demand & background playback on Android.</div>
+        </div>
+        <div class="proj" style="--c:#ffd700" onclick="toggleProj(this)">
+          <div class="proj-hd"><div class="proj-name">Viacom18</div><div class="proj-badge">SHIPPED</div></div>
+          <div class="proj-type">⬡ Media Platform</div>
+          <div class="proj-stars">★★★★★</div>
+          <div class="proj-expand">Core media platform infrastructure spanning multiple Viacom18 streaming products. Worked on shared player SDK, analytics pipeline & cross-app modules.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SPECIALIZATION -->
+<div class="section" id="spec-sec">
+  <div class="panel">
+    <div class="ph"><span class="ph-dot" style="background:var(--y)"></span><span class="ph-title" style="color:var(--y)">▶ CHARACTER CLASS & SPECIALIZATION</span></div>
+    <div class="pb2">
+      <div class="spec-grid">
+        <div class="spec" onclick="spawnParticles(event,'OTT EXPERT!')">
+          <div class="spec-icon">📺</div>
+          <div class="spec-text"><strong>OTT Architect</strong><p>Deep expertise in streaming platforms, adaptive bitrate (HLS/DASH), live & VOD pipelines at production scale.</p></div>
+        </div>
+        <div class="spec" onclick="spawnParticles(event,'PLAYER MAGE!')">
+          <div class="spec-icon">▶️</div>
+          <div class="spec-text"><strong>ExoPlayer Mage</strong><p>Custom player builds, DRM (Widevine/PlayReady), buffer strategies, subtitle rendering & offline playback.</p></div>
+        </div>
+        <div class="spec" onclick="spawnParticles(event,'DEBUG MASTER!')">
+          <div class="spec-icon">🔍</div>
+          <div class="spec-text"><strong>Debug Assassin</strong><p>Performance profiling, memory leak hunting, ANR & crash forensics, Systrace, LeakCanary & custom tooling.</p></div>
+        </div>
+        <div class="spec" onclick="spawnParticles(event,'KMP PIONEER!')">
+          <div class="spec-icon">🚀</div>
+          <div class="spec-text"><strong>KMP Pioneer</strong><p>Cross-platform shared logic between Android & iOS using Kotlin Multiplatform — early adopter and practitioner.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS -->
+<div class="section" id="ach-sec">
+  <div class="panel">
+    <div class="ph"><span class="ph-dot" style="background:var(--y)"></span><span class="ph-title" style="color:var(--y)">▶ ACHIEVEMENTS — 8/10 UNLOCKED</span></div>
+    <div class="pb2">
+      <div class="ach-grid">
+        <div class="ach" onclick="spawnParticles(event,'LEGENDARY!')">
+          <span class="ach-icon">🏆</span>
+          <div class="ach-name">OTT MASTER</div>
+          <div class="ach-desc">Shipped 9 major streaming platforms</div>
+          <div class="ach-rarity legendary">LEGENDARY</div>
+        </div>
+        <div class="ach" onclick="spawnParticles(event,'+100 EXP!')">
+          <span class="ach-icon">⚡</span>
+          <div class="ach-name">SPEED DEBUGGER</div>
+          <div class="ach-desc">Resolved 50+ production crashes</div>
+          <div class="ach-rarity epic">EPIC</div>
+        </div>
+        <div class="ach" onclick="spawnParticles(event,'+80 EXP!')">
+          <span class="ach-icon">📱</span>
+          <div class="ach-name">ANDROID VETERAN</div>
+          <div class="ach-desc">5+ years Android development</div>
+          <div class="ach-rarity epic">EPIC</div>
+        </div>
+        <div class="ach" onclick="spawnParticles(event,'+60 EXP!')">
+          <span class="ach-icon">🌍</span>
+          <div class="ach-name">GLOBAL SCALE</div>
+          <div class="ach-desc">Apps used by millions worldwide</div>
+          <div class="ach-rarity rare">RARE</div>
+        </div>
+        <div class="ach" onclick="spawnParticles(event,'+50 EXP!')">
+          <span class="ach-icon">🔐</span>
+          <div class="ach-name">DRM EXPERT</div>
+          <div class="ach-desc">Widevine L1/L3 & PlayReady</div>
+          <div class="ach-rarity rare">RARE</div>
+        </div>
+        <div class="ach" onclick="spawnParticles(event,'+50 EXP!')">
+          <span class="ach-icon">🧪</span>
+          <div class="ach-name">KMP PIONEER</div>
+          <div class="ach-desc">Early Kotlin Multiplatform adopter</div>
+          <div class="ach-rarity rare">RARE</div>
+        </div>
+        <div class="ach" onclick="spawnParticles(event,'+30 EXP!')">
+          <span class="ach-icon">🔥</span>
+          <div class="ach-name">SENIOR RANK</div>
+          <div class="ach-desc">Achieved Senior Engineer title</div>
+          <div class="ach-rarity common">COMMON</div>
+        </div>
+        <div class="ach" onclick="spawnParticles(event,'+30 EXP!')">
+          <span class="ach-icon">🎮</span>
+          <div class="ach-name">TEAM LEADER</div>
+          <div class="ach-desc">Led feature development squads</div>
+          <div class="ach-rarity common">COMMON</div>
+        </div>
+        <div class="ach locked">
+          <span class="ach-icon">👑</span>
+          <div class="ach-name">LEAD ENG</div>
+          <div class="ach-desc">???</div>
+          <div class="ach-rarity legendary">LEGENDARY</div>
+        </div>
+        <div class="ach locked">
+          <span class="ach-icon">🌟</span>
+          <div class="ach-name">PRINCIPAL</div>
+          <div class="ach-desc">???</div>
+          <div class="ach-rarity legendary">LEGENDARY</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MINI GAME -->
+<div class="section panel" id="game-sec">
+  <div class="ph"><span class="ph-dot" style="background:var(--p)"></span><span class="ph-title" style="color:var(--p)">▶ MINI GAME — BUG BUSTER</span></div>
+  <div class="pb2">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:10px;font-family:'Press Start 2P',monospace;font-size:8px;line-height:2">CLICK BUGS TO SQUASH THEM · MISS = LOSE HP · BUGS SPEED UP OVER TIME</p>
+    <canvas id="game-canvas" width="900" height="260"></canvas>
+    <div class="game-hud">
+      <div>SCORE: <span id="g-score">0</span></div>
+      <div>HP: <span id="g-hp">3</span></div>
+      <div>LEVEL: <span id="g-level">1</span></div>
+      <div>HI-SCORE: <span id="g-hi">0</span></div>
+    </div>
+    <button id="start-game" onclick="startGame()">[ START GAME ]</button>
+  </div>
+</div>
+
+<!-- TERMINAL -->
+<div class="section panel" id="term-sec">
+  <div class="ph"><span class="ph-dot" style="background:var(--g)"></span><span class="ph-title" style="color:var(--g)">▶ INTERACTIVE TERMINAL</span></div>
+  <div class="pb2">
+    <div id="terminal"></div>
+    <div class="term-input-row">
+      <span class="term-prompt">harshul@portfolio:~$</span>
+      <input type="text" id="term-input" placeholder="type 'help' to start..." autocomplete="off" spellcheck="false"/>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<div class="section" id="contact-sec">
+  <div class="panel">
+    <div class="ph"><span class="ph-dot" style="background:var(--b)"></span><span class="ph-title" style="color:var(--b)">▶ CONTACT / CONNECT</span></div>
+    <div class="pb2">
+      <div class="contact-grid">
+        <div class="contact-card" onclick="spawnParticles(event,'COPIED!')" style="border-color:var(--pb)">
+          <span class="cc-icon">📧</span>
+          <span class="cc-label" style="color:var(--g)">EMAIL</span>
+          <span class="cc-val">harshul.vishwakarma<br>@gmail.com</span>
+        </div>
+        <div class="contact-card" onclick="spawnParticles(event,'OPENING!')" style="border-color:var(--pb)">
+          <span class="cc-icon">💼</span>
+          <span class="cc-label" style="color:var(--b)">LINKEDIN</span>
+          <span class="cc-val">linkedin.com/in/<br>harshul-vishwakarma</span>
+        </div>
+        <div class="contact-card" onclick="spawnParticles(event,'OPENING!')" style="border-color:var(--pb)">
+          <span class="cc-icon">🐙</span>
+          <span class="cc-label" style="color:var(--p)">GITHUB</span>
+          <span class="cc-val">github.com/<br>harshul-v</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div><span class="blink">▶</span> HARSHUL VISHWAKARMA · SENIOR SOFTWARE ENGINEER · ANDROID / KMP / OTT <span class="blink">◀</span></div>
+  <div style="margin-top:8px;color:var(--g)">INSERT COIN TO CONTINUE</div>
+</footer>
+</div><!-- /main -->
+
+<script>
+// ─── AUDIO ──────────────────────────────────────────────────────────────────
+let soundOn=true;
+let AudioCtx=window.AudioContext||window.webkitAudioContext;
+let actx;
+function getACtx(){if(!actx)actx=new AudioCtx();return actx;}
+function beep(freq=440,dur=0.1,type='square',vol=0.08){
+  if(!soundOn)return;
+  try{
+    const a=getACtx(),o=a.createOscillator(),g=a.createGain();
+    o.connect(g);g.connect(a.destination);
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);
+    o.start();o.stop(a.currentTime+dur);
+  }catch(e){}
+}
+function toggleSound(){
+  soundOn=!soundOn;
+  document.getElementById('sound-btn').textContent=soundOn?'🔊':'🔇';
+}
+
+// ─── CURSOR ──────────────────────────────────────────────────────────────────
+const cur=document.getElementById('cursor'),trail=document.getElementById('cursor-trail');
+let mx=0,my=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=(mx-8)+'px';cur.style.top=(my-8)+'px';
+  setTimeout(()=>{trail.style.left=(mx-3)+'px';trail.style.top=(my-3)+'px';},60);
+});
+document.addEventListener('mousedown',()=>{cur.classList.add('click');beep(880,0.05)});
+document.addEventListener('mouseup',()=>cur.classList.remove('click'));
+
+// ─── BG CANVAS ────────────────────────────────────────────────────────────────
+const bgC=document.getElementById('bg-canvas');
+const bgX=bgC.getContext('2d');
+let W,H;
+function resizeBg(){W=bgC.width=window.innerWidth;H=bgC.height=window.innerHeight;}
+resizeBg();window.addEventListener('resize',resizeBg);
+const stars=Array.from({length:200},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.4+0.2,s:Math.random()*0.5+0.1,o:Math.random()*Math.PI*2}));
+function animBg(t){
+  bgX.clearRect(0,0,W,H);
+  stars.forEach(s=>{
+    s.o+=s.s*0.008;
+    const a=0.15+0.55*Math.abs(Math.sin(s.o));
+    bgX.beginPath();bgX.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
+    bgX.fillStyle=`rgba(100,160,255,${a})`;bgX.fill();
+  });
+  // grid lines
+  bgX.strokeStyle='rgba(0,255,136,0.025)';bgX.lineWidth=1;
+  for(let x=0;x<W;x+=60){bgX.beginPath();bgX.moveTo(x,0);bgX.lineTo(x,H);bgX.stroke();}
+  for(let y=0;y<H;y+=60){bgX.beginPath();bgX.moveTo(0,y);bgX.lineTo(W,y);bgX.stroke();}
+  requestAnimationFrame(animBg);
+}
+animBg(0);
+
+// ─── BOOT SCREEN ─────────────────────────────────────────────────────────────
+const bootLines=[
+  'HARSHUL.EXE v8.0 INITIALIZING...',
+  '> LOADING ANDROID CORE MODULE......... OK',
+  '> LOADING KOTLIN ENGINE............... OK',
+  '> LOADING KMP BRIDGE.................. OK',
+  '> LOADING EXOPLAYER MODULE............. OK',
+  '> LOADING OTT SUBSYSTEMS.............. OK',
+  '> SCANNING PROJECT DATABASE........... 9 FOUND',
+  '> VERIFYING ACHIEVEMENTS.............. 8/10 UNLOCKED',
+  '> CALIBRATING DEBUG SYSTEMS........... OK',
+  '> ALL SYSTEMS NOMINAL',
+  '',
+  '  WELCOME, RECRUITER.',
+  '  PLAYER: HARSHUL VISHWAKARMA',
+  '  STATUS: SENIOR SOFTWARE ENGINEER',
+];
+let bi=0,blDone=false;
+const btEl=document.getElementById('boot-text');
+const bfEl=document.getElementById('boot-fill');
+function typeLine(){
+  if(blDone)return;
+  if(bi>=bootLines.length){bootDone();return;}
+  const line=bootLines[bi++];
+  const d=document.createElement('div');d.textContent=line;
+  if(line.startsWith('>'))d.style.color='#00ccff';
+  if(line.includes('WELCOME'))d.style.color='#ffd700';
+  if(line.includes('PLAYER:')||line.includes('STATUS:'))d.style.color='#00ff88';
+  btEl.appendChild(d);btEl.scrollTop=btEl.scrollHeight;
+  bfEl.style.width=Math.round((bi/bootLines.length)*100)+'%';
+  if(line.trim())beep(bi%2?440:550,0.04,'square',0.03);
+  const delay=line.startsWith('>')? 180 : line===''?50:120;
+  setTimeout(typeLine,delay);
+}
+function bootDone(){
+  blDone=true;bfEl.style.width='100%';
+  setTimeout(()=>{
+    document.getElementById('boot').style.opacity='0';
+    document.getElementById('boot').style.transition='opacity .8s';
+    setTimeout(()=>{
+      document.getElementById('boot').style.display='none';
+      document.getElementById('main').classList.add('show');
+      initPortfolio();
+    },800);
+  },700);
+}
+function skipBoot(){blDone=true;bootDone();}
+setTimeout(typeLine,400);
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!blDone)skipBoot();});
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+function initPortfolio(){
+  typeHeroName();
+  animateBars();
+  animateStats();
+  initScrollObserver();
+  initTerminal();
+  initGame();
+  setTimeout(animateSkills,600);
+}
+
+// ─── TYPED NAME ─────────────────────────────────────────────────────────────
+function typeHeroName(){
+  const el=document.getElementById('typed-name');
+  const txt='HARSHUL\nVISHWAKARMA';let i=0;
+  const iv=setInterval(()=>{
+    el.textContent=txt.slice(0,i+1).replace('\n','\n');
+    el.innerHTML=txt.slice(0,i+1).replace('\n','<br>');
+    beep(300+i*20,0.04,'square',0.02);i++;
+    if(i>txt.length)clearInterval(iv);
+  },80);
+}
+
+// ─── BARS ────────────────────────────────────────────────────────────────────
+function animateBars(){
+  setTimeout(()=>{document.getElementById('hp-bar').style.width='88%'},300);
+  setTimeout(()=>{document.getElementById('mp-bar').style.width='92.5%'},500);
+  setTimeout(()=>{document.getElementById('xp-bar').style.width='75%'},700);
+}
+
+// ─── STATS COUNTER ──────────────────────────────────────────────────────────
+const statTargets=[96,94,92,95];
+function animateStats(){
+  statTargets.forEach((t,i)=>{
+    const el=document.getElementById('sn'+(i+1));
+    let v=0;
+    const iv=setInterval(()=>{
+      v+=Math.ceil((t-v)/6)||1;
+      el.textContent=v;
+      if(v>=t){el.textContent=t;clearInterval(iv);}
+    },30);
+  });
+}
+
+// ─── SKILLS ──────────────────────────────────────────────────────────────────
+function animateSkills(){
+  document.querySelectorAll('.sk-fill').forEach((f,i)=>{
+    setTimeout(()=>{f.style.width=f.dataset.w+'%';},i*120);
+  });
+}
+
+// ─── SCROLL OBSERVER ──────────────────────────────────────────────────────────
+const secIds=['hero-sec','skills-sec','projects-sec','spec-sec','ach-sec','game-sec','term-sec'];
+function initScrollObserver(){
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        const idx=secIds.indexOf(e.target.id);
+        document.querySelectorAll('.scroll-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+        document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+      }
+    });
+  },{threshold:0.15});
+  document.querySelectorAll('.section').forEach(s=>obs.observe(s));
+}
+
+function scrollTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+
+// ─── TOOLTIP ────────────────────────────────────────────────────────────────
+const tip=document.getElementById('tooltip');
+document.querySelectorAll('[data-tip]').forEach(el=>{
+  el.addEventListener('mouseenter',e=>{
+    tip.textContent=el.dataset.tip;tip.style.opacity='1';
+  });
+  el.addEventListener('mousemove',e=>{
+    tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px';
+  });
+  el.addEventListener('mouseleave',()=>tip.style.opacity='0');
+});
+
+// ─── PARTICLES ──────────────────────────────────────────────────────────────
+let comboCount=0,comboTimer;
+const comboEl=document.getElementById('combo');
+function spawnParticles(e,txt='+EXP!'){
+  beep(660,0.1,'square',0.06);
+  for(let i=0;i<6;i++){
+    const p=document.createElement('div');p.className='particle';
+    p.textContent=['★','♦','●','▲'][i%4];
+    p.style.left=(e.clientX+Math.random()*40-20)+'px';
+    p.style.top=(e.clientY-20)+'px';
+    p.style.color=['var(--g)','var(--y)','var(--b)','var(--o)'][i%4];
+    p.style.animationDuration=(0.6+Math.random()*0.4)+'s';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),1000);
+  }
+  comboCount++;clearTimeout(comboTimer);
+  comboEl.textContent=txt+(comboCount>1?' x'+comboCount:'');comboEl.style.opacity='1';
+  comboTimer=setTimeout(()=>{comboEl.style.opacity='0';comboCount=0;},1500);
+}
+
+// ─── STAT POP ───────────────────────────────────────────────────────────────
+function popStat(el){
+  beep(550,0.15,'triangle',0.07);
+  el.style.transform='scale(1.15)';
+  setTimeout(()=>el.style.transform='',200);
+}
+
+// ─── PROJECT TOGGLE ─────────────────────────────────────────────────────────
+function toggleProj(el){
+  const wasOpen=el.classList.contains('open');
+  document.querySelectorAll('.proj').forEach(p=>p.classList.remove('open'));
+  if(!wasOpen){el.classList.add('open');beep(440,0.1,'sine',0.06);}
+}
+
+// ─── TERMINAL ────────────────────────────────────────────────────────────────
+const cmds={
+  help:()=>`Available commands:\n  about      — who is harshul\n  skills     — list all skills\n  projects   — list all projects\n  contact    — contact info\n  stack      — tech stack details\n  xp         — current XP & level\n  quote      — random dev quote\n  clear      — clear terminal\n  exit       — close terminal`,
+  about:()=>`NAME    : Harshul Vishwakarma\nROLE    : Senior Software Engineer\nFOCUS   : Android, KMP, OTT, ExoPlayer\nLOCATION: India\nSTATUS  : Building scalable streaming apps\nYEARS   : 5+ years in Android ecosystem`,
+  skills:()=>`SKILL TREE:\n  [96%] Kotlin          ████████████████████ ★★★★★\n  [94%] ExoPlayer/OTT  ███████████████████  ★★★★★\n  [92%] KMP            ██████████████████   ★★★★☆\n  [92%] Android Arch   ██████████████████   ★★★★☆\n  [90%] Java           █████████████████    ★★★★☆\n  [95%] Debugging      ████████████████████ ★★★★★`,
+  projects:()=>`COMPLETED QUESTS (9):\n  ★ Jio Cinema    — OTT · Viacom18\n  ★ Sony LIV      — OTT · Sony\n  ★ Voot          — Streaming · Viacom18\n  ★ Voot Kids     — Kids OTT\n  ★ meWATCH       — SEA Streaming\n  ★ Eros Now      — Bollywood OTT\n  ★ Eros Universe — Extended OTT\n  ★ CNA           — News App · Mediacorp\n  ★ Viacom18      — Core Media Platform`,
+  contact:()=>`CONTACT INFO:\n  EMAIL   : harshul.vishwakarma@gmail.com\n  LINKEDIN: linkedin.com/in/harshul-vishwakarma\n  GITHUB  : github.com/harshul-v\n\nType 'hire' for collaboration inquiry.`,
+  hire:()=>`INITIATING HIRE SEQUENCE...\n> Open to exciting Android / KMP / OTT roles\n> Available for full-time & consulting\n> DM on LinkedIn or drop an email!\n\n  harshul.vishwakarma@gmail.com`,
+  stack:()=>`TECH STACK:\n  LANGUAGE  : Kotlin (primary), Java\n  PLATFORM  : Android SDK, KMP\n  PLAYER    : ExoPlayer / Media3\n  DRM       : Widevine L1/L3, PlayReady\n  ARCH      : MVVM, Clean Arch, MVI\n  DI        : Dagger/Hilt, Koin\n  ASYNC     : Coroutines, Flow, RxJava\n  UI        : Jetpack Compose, XML\n  TOOLS     : Android Studio, Flipper\n  CI/CD     : GitHub Actions, Fastlane`,
+  xp:()=>`PLAYER STATS:\n  LEVEL     : 8\n  XP        : 7,500 / 10,000\n  HP        : 880 / 1000\n  RANK      : Senior Software Engineer\n  NEXT RANK : Lead / Principal Engineer\n\n  [ ████████████████░░░░ ] 75%`,
+  quote:()=>{const q=["\"First, solve the problem. Then, write the code.\"","\"Debugging is twice as hard as writing code.\"","\"The best code is no code at all.\"","\"Make it work, make it right, make it fast.\"","\"Simplicity is the soul of efficiency.\""];return q[Math.floor(Math.random()*q.length)];},
+  clear:()=>{document.getElementById('terminal').innerHTML='';return null;},
+  exit:()=>`Nice try. You can't exit the game. 😄\nType 'help' to continue.`,
+};
+function initTerminal(){
+  const t=document.getElementById('terminal');
+  const inp=document.getElementById('term-input');
+  addLine('HARSHUL PORTFOLIO TERMINAL v1.0','');
+  addLine("Type 'help' to see available commands.",'');
+  addLine('','');
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      const v=inp.value.trim().toLowerCase();inp.value='';
+      if(!v)return;
+      addLine('harshul@portfolio:~$ '+v,'cmd');
+      beep(330,0.05,'square',0.04);
+      const fn=cmds[v];
+      if(fn){const r=fn();if(r!==null)addLine(r,'');}
+      else addLine(`Command not found: "${v}". Type 'help' for commands.`,'err');
+    }
+  });
+}
+function addLine(txt,cls){
+  const t=document.getElementById('terminal');
+  txt.split('\n').forEach(line=>{
+    const d=document.createElement('div');d.className='term-line'+(cls?' '+cls:'');d.textContent=line;
+    t.appendChild(d);
+  });
+  t.scrollTop=t.scrollHeight;
+}
+
+// ─── MINI GAME ───────────────────────────────────────────────────────────────
+const gc=document.getElementById('game-canvas');
+const gx=gc.getContext('2d');
+let gScore=0,gHp=3,gLevel=1,gRunning=false,gBugs=[],gHiScore=0,gRaf;
+const bugChars=['🐛','🦟','🐜','🦗','🐞'];
+function initGame(){
+  gc.addEventListener('click',e=>{
+    if(!gRunning)return;
+    const rect=gc.getBoundingClientRect();
+    const sx=gc.width/rect.width,sy=gc.height/rect.height;
+    const cx=(e.clientX-rect.left)*sx,cy=(e.clientY-rect.top)*sy;
+    gBugs.forEach((b,i)=>{
+      if(Math.hypot(cx-b.x,cy-b.y)<28){
+        gBugs.splice(i,1);gScore+=10*(gLevel);
+        document.getElementById('g-score').textContent=gScore;
+        beep(880,0.08,'square',0.07);
+        spawnParticles(e,'BUG KILLED!');
+      }
+    });
+  });
+  drawGameIdle();
+}
+function drawGameIdle(){
+  gx.clearRect(0,0,gc.width,gc.height);
+  gx.fillStyle='rgba(0,255,136,0.5)';
+  gx.font='bold 14px "Press Start 2P"';gx.textAlign='center';
+  gx.fillText('CLICK [ START GAME ] TO PLAY',gc.width/2,gc.height/2-10);
+  gx.fillStyle='rgba(0,204,255,0.4)';gx.font='10px "Press Start 2P"';
+  gx.fillText('SQUASH THE BUGS · SURVIVE AS LONG AS POSSIBLE',gc.width/2,gc.height/2+20);
+}
+function startGame(){
+  if(gRaf)cancelAnimationFrame(gRaf);
+  gScore=0;gHp=3;gLevel=1;gBugs=[];gRunning=true;
+  document.getElementById('g-score').textContent='0';
+  document.getElementById('g-hp').textContent='3';
+  document.getElementById('g-level').textContent='1';
+  document.getElementById('start-game').textContent='[ RESTART ]';
+  beep(220,0.3,'sawtooth',0.05);
+  let lastBug=0,lastLevelUp=0;
+  function loop(ts){
+    gRaf=requestAnimationFrame(loop);
+    gx.clearRect(0,0,gc.width,gc.height);
+    // spawn
+    const spawnRate=Math.max(400,1200-gLevel*80);
+    if(ts-lastBug>spawnRate){
+      lastBug=ts;
+      gBugs.push({x:Math.random()*(gc.width-60)+30,y:-20,
+        spd:1.2+gLevel*0.3+Math.random(),
+        ch:bugChars[Math.floor(Math.random()*bugChars.length)],
+        wobble:Math.random()*Math.PI*2});
+    }
+    // level up
+    if(ts-lastLevelUp>8000){lastLevelUp=ts;gLevel++;document.getElementById('g-level').textContent=gLevel;beep(660,0.15,'square',0.05);}
+    // update & draw
+    let missed=[];
+    gBugs.forEach((b,i)=>{
+      b.y+=b.spd;b.wobble+=0.05;b.x+=Math.sin(b.wobble)*1.2;
+      if(b.y>gc.height+20){missed.push(i);return;}
+      gx.font='28px serif';gx.textAlign='center';
+      gx.fillText(b.ch,b.x,b.y);
+      // glow
+      gx.shadowBlur=10;gx.shadowColor='#ff4444';
+      gx.font='28px serif';gx.fillText(b.ch,b.x,b.y);
+      gx.shadowBlur=0;
+    });
+    // remove missed & deduct HP
+    missed.reverse().forEach(i=>{gBugs.splice(i,1);gHp--;document.getElementById('g-hp').textContent=gHp;beep(110,0.2,'sawtooth',0.08);});
+    if(gHp<=0){gameOver();return;}
+    // HUD
+    gx.fillStyle='rgba(0,255,136,0.7)';gx.font='10px "Press Start 2P"';gx.textAlign='left';
+    for(let i=0;i<gHp;i++)gx.fillText('♥ ',10+i*24,20);
+  }
+  gRaf=requestAnimationFrame(loop);
+}
+function gameOver(){
+  gRunning=false;cancelAnimationFrame(gRaf);
+  if(gScore>gHiScore){gHiScore=gScore;document.getElementById('g-hi').textContent=gHiScore;}
+  gx.clearRect(0,0,gc.width,gc.height);
+  gx.fillStyle='rgba(255,68,68,0.8)';gx.font='bold 16px "Press Start 2P"';gx.textAlign='center';
+  gx.fillText('GAME OVER',gc.width/2,gc.height/2-20);
+  gx.fillStyle='rgba(255,215,0,0.8)';gx.font='10px "Press Start 2P"';
+  gx.fillText('SCORE: '+gScore,gc.width/2,gc.height/2+10);
+  gx.fillStyle='rgba(0,255,136,0.6)';
+  gx.fillText('CLICK RESTART TO PLAY AGAIN',gc.width/2,gc.height/2+40);
+  beep(110,0.5,'sawtooth',0.07);
+}
+</script>
 </body>
 </html>
