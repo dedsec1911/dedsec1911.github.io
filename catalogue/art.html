@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canvas Art – Dev Catalogue</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #050a14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  font-family: 'Syne', sans-serif;
+}
+
+.canvas-wrap {
+  width: 100%;
+  max-width: 900px;
+}
+
+.poster {
+  background: linear-gradient(165deg, #060d1f 0%, #0a1628 40%, #07121f 100%);
+  border: 1.5px solid rgba(0,212,255,0.25);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  padding: 0;
+}
+
+/* corner accents */
+.poster::before, .poster::after {
+  content: '';
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  z-index: 0;
+}
+.poster::before {
+  top: 0; left: 0;
+  border-top: 2px solid rgba(0,212,255,0.6);
+  border-left: 2px solid rgba(0,212,255,0.6);
+  border-radius: 16px 0 0 0;
+}
+.poster::after {
+  bottom: 0; right: 0;
+  border-bottom: 2px solid rgba(255,107,0,0.6);
+  border-right: 2px solid rgba(255,107,0,0.6);
+  border-radius: 0 0 16px 0;
+}
+
+/* scanline texture */
+.scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.08) 3px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* glow blobs */
+.glow-blue {
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(ellipse, rgba(0,212,255,0.08), transparent 70%);
+  pointer-events: none;
+}
+.glow-orange {
+  position: absolute;
+  bottom: -80px; left: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(ellipse, rgba(255,107,0,0.07), transparent 70%);
+  pointer-events: none;
+}
+.glow-purple {
+  position: absolute;
+  top: 40%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 300px;
+  background: radial-gradient(ellipse, rgba(180,77,255,0.04), transparent 70%);
+  pointer-events: none;
+}
+
+/* HEADER */
+.poster-header {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px 40px 28px;
+  border-bottom: 1px solid rgba(0,212,255,0.12);
+}
+
+.header-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  color: #00d4ff;
+  opacity: 0.8;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.header-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(36px, 8vw, 72px);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, #ffffff 0%, #00d4ff 45%, #b44dff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.header-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: rgba(122,156,192,0.9);
+}
+
+/* MAIN GRID */
+.poster-body {
+  position: relative;
+  z-index: 1;
+  padding: 28px 28px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* service block */
+.svc-block {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.svc-block::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+/* blue blocks */
+.block-blue { border-color: rgba(0,212,255,0.2); background: rgba(0,212,255,0.04); }
+.block-blue::before { background: linear-gradient(to right, #00d4ff, rgba(0,212,255,0.1)); }
+
+/* green blocks */
+.block-green { border-color: rgba(0,255,136,0.2); background: rgba(0,255,136,0.03); }
+.block-green::before { background: linear-gradient(to right, #00ff88, rgba(0,255,136,0.1)); }
+
+/* purple blocks */
+.block-purple { border-color: rgba(180,77,255,0.2); background: rgba(180,77,255,0.04); }
+.block-purple::before { background: linear-gradient(to right, #b44dff, rgba(180,77,255,0.1)); }
+
+/* orange blocks */
+.block-orange { border-color: rgba(255,107,0,0.2); background: rgba(255,107,0,0.04); }
+.block-orange::before { background: linear-gradient(to right, #ff6b00, rgba(255,107,0,0.1)); }
+
+/* red blocks */
+.block-red { border-color: rgba(255,43,43,0.2); background: rgba(255,43,43,0.04); }
+.block-red::before { background: linear-gradient(to right, #ff2b2b, rgba(255,43,43,0.1)); }
+
+.block-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.block-icon { font-size: 16px; }
+.block-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.block-blue .block-title { color: #00d4ff; }
+.block-green .block-title { color: #00ff88; }
+.block-purple .block-title { color: #b44dff; }
+.block-orange .block-title { color: #ff6b00; }
+.block-red .block-title { color: #ff2b2b; }
+
+/* service rows */
+.svc-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  gap: 12px;
+}
+.svc-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.svc-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(122,156,192,0.5);
+  flex-shrink: 0;
+  width: 20px;
+}
+.svc-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #d8e8f5;
+  flex: 1;
+  line-height: 1.3;
+}
+.svc-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  flex-shrink: 0;
+  text-align: right;
+  line-height: 1.3;
+}
+.block-blue .svc-price { color: #00d4ff; }
+.block-green .svc-price { color: #00ff88; }
+.block-purple .svc-price { color: #b44dff; }
+.block-orange .svc-price { color: #ff8c3a; }
+.block-red .svc-price { color: #ff5555; }
+
+/* ADD-ONS & FOOTER area */
+.poster-footer {
+  position: relative;
+  z-index: 1;
+  margin: 4px 28px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.addons-strip {
+  grid-column: 1 / -1;
+  border: 1px solid rgba(255,107,0,0.2);
+  background: rgba(255,107,0,0.04);
+  border-radius: 10px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.addon-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: #ff6b00;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-right: 16px;
+}
+
+.addon-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 100px;
+  background: rgba(255,255,255,0.03);
+}
+.addon-pill-name {
+  font-size: 11px;
+  color: rgba(200,220,240,0.7);
+  letter-spacing: 0.05em;
+}
+.addon-pill-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #ff6b00;
+  font-weight: 500;
+}
+
+/* why strip */
+.why-strip {
+  grid-column: 1 / -1;
+  border: 1px solid rgba(0,212,255,0.12);
+  border-radius: 10px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: rgba(0,212,255,0.02);
+}
+.why-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.why-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #00ff88;
+  flex-shrink: 0;
+}
+.why-text {
+  font-size: 11px;
+  color: rgba(180,210,240,0.75);
+  letter-spacing: 0.05em;
+}
+
+/* contact */
+.contact-strip {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(0,212,255,0.1);
+  padding-top: 18px;
+}
+
+.c-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.c-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.c-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #b8d4ea;
+}
+
+/* bottom tagline */
+.tagline-bar {
+  position: relative;
+  z-index: 1;
+  margin: 0 28px 28px;
+  background: linear-gradient(90deg, rgba(0,212,255,0.08) 0%, rgba(180,77,255,0.08) 50%, rgba(255,107,0,0.08) 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 14px 24px;
+  text-align: center;
+}
+.tagline-text {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(12px, 2.5vw, 17px);
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #e8f4ff;
+}
+.tagline-text .highlight { color: #ff6b00; }
+.tagline-text .highlight2 { color: #00d4ff; }
+</style>
+</head>
+<body>
+<div class="canvas-wrap">
+  <div class="poster">
+    <div class="scanlines"></div>
+    <div class="glow-blue"></div>
+    <div class="glow-orange"></div>
+    <div class="glow-purple"></div>
+
+    <!-- HEADER -->
+    <div class="poster-header">
+      <p class="header-eyebrow">Freelance Services · Fast Delivery · Professional · Affordable</p>
+      <h1 class="header-title">CATALOGUE</h1>
+      <p class="header-sub">Full-Stack · AI-Powered · Mobile · Web · Automation</p>
+    </div>
+
+    <!-- SERVICE GRID -->
+    <div class="poster-body">
+
+      <!-- AI & CHATBOT -->
+      <div class="svc-block block-blue">
+        <div class="block-header">
+          <span class="block-icon">🤖</span>
+          <span class="block-title">AI & Chatbot Dev</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">01</span>
+          <span class="svc-name">AI Chatbot (Basic)</span>
+          <span class="svc-price">₹40,000–₹50,000+</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">02</span>
+          <span class="svc-name">Certification Chatbot</span>
+          <span class="svc-price">₹28,000–₹33,000+</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">03</span>
+          <span class="svc-name">Custom AI Agent</span>
+          <span class="svc-price">₹1,60,000–₹5,00,000+</span>
+        </div>
+      </div>
+
+      <!-- MOBILE APP -->
+      <div class="svc-block block-green">
+        <div class="block-header">
+          <span class="block-icon">📱</span>
+          <span class="block-title">Mobile App Dev</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">01</span>
+          <span class="svc-name">Basic Android / iOS App</span>
+          <span class="svc-price">₹80,000–₹2,00,000+</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">02</span>
+          <span class="svc-name">Advanced App</span>
+          <span class="svc-price">₹1,00,000–₹2,50,000+</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">03</span>
+          <span class="svc-name">AI-Powered App</span>
+          <span class="svc-price">₹1,00,000–₹5,00,000+</span>
+        </div>
+      </div>
+
+      <!-- WEB & SAAS -->
+      <div class="svc-block block-purple">
+        <div class="block-header">
+          <span class="block-icon">🖥️</span>
+          <span class="block-title">Web & SaaS Dev</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">01</span>
+          <span class="svc-name">Landing Page / Website</span>
+          <span class="svc-price">₹20,000–₹26,000+</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">02</span>
+          <span class="svc-name">SaaS Web Application</span>
+          <span class="svc-price">₹26,000–₹95,000+</span>
+        </div>
+      </div>
+
+      <!-- E-COMMERCE -->
+      <div class="svc-block block-orange">
+        <div class="block-header">
+          <span class="block-icon">🛒</span>
+          <span class="block-title">E-Commerce</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">01</span>
+          <span class="svc-name">AI-Powered E-Commerce</span>
+          <span class="svc-price">₹2,60,000–₹5,20,000</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">02</span>
+          <span class="svc-name">Store Setup (Shopify/Custom)</span>
+          <span class="svc-price">₹1,00,000–₹3,50,000</span>
+        </div>
+      </div>
+
+      <!-- AUTOMATION -->
+      <div class="svc-block block-blue">
+        <div class="block-header">
+          <span class="block-icon">⚙️</span>
+          <span class="block-title">Automation & Integrations</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">01</span>
+          <span class="svc-name">Business Automation</span>
+          <span class="svc-price">₹60,000–₹1,00,000+</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">02</span>
+          <span class="svc-name">API Integrations</span>
+          <span class="svc-price">₹30,000–₹80,000+</span>
+        </div>
+      </div>
+
+      <!-- CONTENT AUTOMATION -->
+      <div class="svc-block block-red">
+        <div class="block-header">
+          <span class="block-icon">▶️</span>
+          <span class="block-title">Content Automation 🔥</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">01</span>
+          <span class="svc-name">YouTube Shorts Automation</span>
+          <span class="svc-price">₹80,000–₹2,00,000</span>
+        </div>
+        <div class="svc-row">
+          <span class="svc-num">02</span>
+          <span class="svc-name">UI/UX Design Automation</span>
+          <span class="svc-price">₹6,400–₹80,000+</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="poster-footer">
+
+      <!-- ADD-ONS -->
+      <div class="addons-strip">
+        <span class="addon-label">📋 Add-Ons</span>
+        <div class="addon-pill">
+          <span class="addon-pill-name">🔧 Maintenance</span>
+          <span class="addon-pill-price">₹6,600/mo</span>
+        </div>
+        <div class="addon-pill">
+          <span class="addon-pill-name">⚡ Fast Delivery</span>
+          <span class="addon-pill-price">+30% Extra</span>
+        </div>
+        <div class="addon-pill">
+          <span class="addon-pill-name">🎨 UI/UX Design</span>
+          <span class="addon-pill-price">₹6,500–₹28,000+</span>
+        </div>
+      </div>
+
+      <!-- WHY -->
+      <div class="why-strip">
+        <div class="why-item"><div class="why-dot"></div><span class="why-text">100% Client Satisfaction</span></div>
+        <div class="why-item"><div class="why-dot"></div><span class="why-text">Fast Delivery</span></div>
+        <div class="why-item"><div class="why-dot"></div><span class="why-text">AI-First Approach</span></div>
+        <div class="why-item"><div class="why-dot"></div><span class="why-text">Scalable & Secure</span></div>
+        <div class="why-item"><div class="why-dot"></div><span class="why-text">Clean & Modern Code</span></div>
+        <div class="why-item"><div class="why-dot"></div><span class="why-text">On-Time Delivery</span></div>
+      </div>
+
+      <!-- CONTACT -->
+      <div class="contact-strip">
+        <div class="c-item">
+          <div class="c-dot" style="background:#00ff88;"></div>
+          <span class="c-text">+91-7771090500</span>
+        </div>
+        <div class="c-item">
+          <div class="c-dot" style="background:#ff6b00;"></div>
+          <span class="c-text">harshu40116@gmail.com</span>
+        </div>
+        <div class="c-item">
+          <div class="c-dot" style="background:#00d4ff;"></div>
+          <span class="c-text">dedsec1911.github.io</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tagline-bar">
+      <span class="tagline-text">
+        "I don't just build <span class="highlight2">apps</span> —
+        I build <span class="highlight">systems</span> that make <span class="highlight">money!</span>"
+      </span>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
